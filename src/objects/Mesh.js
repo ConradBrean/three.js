@@ -188,7 +188,7 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 
 			if ( intersection ) {
 
-				if ( uv ) {
+				if ( uv && uv.array ) {
 
 					uvA.fromBufferAttribute( uv, a );
 					uvB.fromBufferAttribute( uv, b );
