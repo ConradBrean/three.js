@@ -112,7 +112,7 @@ function CameraHelper( camera ) {
 	this.camera = camera;
 	if ( this.camera.updateProjectionMatrix ) this.camera.updateProjectionMatrix();
 
-	this.matrix = camera.matrixWorld;
+	this.matrixWorld = camera.matrixWorld;
 	this.matrixAutoUpdate = false;
 
 	this.pointMap = pointMap;

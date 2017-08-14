@@ -18,7 +18,7 @@ function DirectionalLightHelper( light, size, color ) {
 	this.light = light;
 	this.light.updateMatrixWorld();
 
-	this.matrix = light.matrixWorld;
+	this.matrixWorld = light.matrixWorld;
 	this.matrixAutoUpdate = false;
 
 	this.color = color;
@@ -68,6 +68,9 @@ DirectionalLightHelper.prototype.update = function () {
 	var v3 = new Vector3();
 
 	return function update() {
+
+		this.lightPlane.updateMatrixWorld(); 
+    	this.targetLine.updateMatrixWorld(); 
 
 		v1.setFromMatrixPosition( this.light.matrixWorld );
 		v2.setFromMatrixPosition( this.light.target.matrixWorld );
