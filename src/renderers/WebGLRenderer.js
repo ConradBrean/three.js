@@ -1267,8 +1267,20 @@ function WebGLRenderer( parameters ) {
 
 					if ( sortObjects ) {
 
-						_vector3.setFromMatrixPosition( object.matrixWorld )
-							.applyMatrix4( _projScreenMatrix );
+						const boundingSphere = object.geometry && object.geometry.boundingSphere; 
+ 
+						if ( boundingSphere ) { 
+						
+							_vector3.copy( boundingSphere.center ); 
+							_vector3.applyMatrix4( object.matrixWorld ); 
+			
+						} else { 
+			
+							_vector3.setFromMatrixPosition( object.matrixWorld ); 
+			
+						} 
+			
+						_vector3.applyMatrix4( _projScreenMatrix ); 
 
 					}
 
