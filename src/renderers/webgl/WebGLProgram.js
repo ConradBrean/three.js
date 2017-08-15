@@ -459,6 +459,7 @@ function WebGLProgram( renderer, extensions, code, material, shader, parameters 
 
 			parameters.shadowMapEnabled ? '#define USE_SHADOWMAP' : '',
 			parameters.shadowMapEnabled ? '#define ' + shadowMapTypeDefine : '',
+			parameters.shadowMapEnabled ? '#define SHADOWMAP_DEPTH_PACKING ' + renderer.shadowMap.depthPacking : '',
 
 			parameters.premultipliedAlpha ? "#define PREMULTIPLIED_ALPHA" : '',
 

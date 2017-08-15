@@ -31,7 +31,15 @@
 
 	float texture2DCompare( sampler2D depths, vec2 uv, float compare ) {
 
-		return step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );
+		#if SHADOWMAP_DEPTH_PACKING == 3201
+
+			return step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );
+
+		#elif SHADOWMAP_DEPTH_PACKING == 3202
+
+			return step( compare, texture2D( depths, uv ).r );
+
+		#endif
 
 	}
 

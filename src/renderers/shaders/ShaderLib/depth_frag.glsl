@@ -38,6 +38,10 @@ void main() {
 
 		gl_FragColor = packDepthToRGBA( gl_FragCoord.z );
 
+	#elif DEPTH_PACKING == 3202
+
+		gl_FragColor.r =  gl_FragCoord.z;
+
 	#endif
 
 }
