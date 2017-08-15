@@ -31,8 +31,16 @@
 
 	float texture2DCompare( sampler2D depths, vec2 uv, float compare ) {
 
-		return step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );
+		#if SHADOWMAP_DEPTH_PACKING == 3001
 
+			return step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );
+
+		#elif SHADOWMAP_DEPTH_PACKING == 3002
+
+			return step( compare, texture2D( depths, uv ).r );
+
+		#elif
+		
 	}
 
 	float texture2DShadowLerp( sampler2D depths, vec2 size, vec2 uv, float compare ) {

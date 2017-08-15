@@ -3,7 +3,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 
-import { FrontSide, BackSide, DoubleSide, RGBAFormat, NearestFilter, PCFShadowMap, RGBADepthPacking } from '../../constants';
+import { FrontSide, BackSide, DoubleSide, RGBAFormat, NearestFilter, LinearFilter, PCFShadowMap, RGBADepthPacking, FloatDepthPacking, FloatType, UnsignedByteType } from '../../constants';
 import { WebGLRenderTarget } from '../WebGLRenderTarget';
 import { ShaderMaterial } from '../../materials/ShaderMaterial';
 import { UniformsUtils } from '../shaders/UniformsUtils';
@@ -27,13 +27,9 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 		_lookTarget = new Vector3(),
 		_lightPositionWorld = new Vector3(),
 
-		_MorphingFlag = 1,
-		_SkinningFlag = 2,
 
-		_NumberOfMaterialVariants = ( _MorphingFlag | _SkinningFlag ) + 1,
-
-		_depthMaterials = new Array( _NumberOfMaterialVariants ),
-		_distanceMaterials = new Array( _NumberOfMaterialVariants ),
+		_depthMaterials = null, // initialize later, make it possible to change depth packing before
+		_distanceMaterials = null,
 
 		_materialCache = {};
 
@@ -54,36 +50,10 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 
 	// init
 
-	for ( var i = 0; i !== _NumberOfMaterialVariants; ++ i ) {
+	this.depthPacking = // use float texture only when it can be interpolated by gpu ( most cases )
+		_renderer.extensions.get( 'OES_texture_float' ) && _renderer.extensions.get( 'OES_texture_float_linear' )
+	? FloatDepthPacking : RGBADepthPacking;
 
-		var useMorphing = ( i & _MorphingFlag ) !== 0;
-		var useSkinning = ( i & _SkinningFlag ) !== 0;
-
-		var depthMaterial = new MeshDepthMaterial( {
-
-			depthPacking: RGBADepthPacking,
-
-			morphTargets: useMorphing,
-			skinning: useSkinning
-
-		} );
-
-		_depthMaterials[ i ] = depthMaterial;
-
-		//
-
-		var distanceMaterial = new MeshDistanceMaterial( {
-
-			morphTargets: useMorphing,
-			skinning: useSkinning
-
-		} );
-
-		_distanceMaterials[ i ] = distanceMaterial;
-
-	}
-
-	//
 
 	var scope = this;
 
@@ -176,6 +146,20 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 
 				var pars = { minFilter: NearestFilter, magFilter: NearestFilter, format: RGBAFormat };
 
+				if (scope.depthPacking === FloatDepthPacking && scope.type == PCFShadowMap) {
+					
+					pars.type = FloatType;
+					
+					if ( scope.type == PCFShadowMap ) { // seems to be giving nicer results
+						
+						pars.minFilter = LinearFilter;
+						pars.magFilter = LinearFilter;
+						
+					}
+
+				}
+ 
+
 				shadow.map = new WebGLRenderTarget( _shadowMapSize.x, _shadowMapSize.y, pars );
 				shadow.map.texture.name = light.name + ".shadowMap";
 
@@ -266,9 +250,46 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 
 	function getDepthMaterial( object, material, isPointLight, lightPositionWorld, shadowCameraNear, shadowCameraFar ) {
 
-		var geometry = object.geometry;
+		if ( _depthMaterials === null && _distanceMaterials === null ) {
 
-		var result = null;
+
+			var _MorphingFlag = 1,
+				_SkinningFlag = 2,
+				_NumberOfMaterialVariants = ( _MorphingFlag | _SkinningFlag ) + 1;
+
+			_depthMaterials = new Array( _NumberOfMaterialVariants );
+			_distanceMaterials = new Array( _NumberOfMaterialVariants );
+
+			for ( var i = 0; i !== _NumberOfMaterialVariants; ++ i ) {
+
+				var useMorphing = ( i & _MorphingFlag ) !== 0;
+				var useSkinning = ( i & _SkinningFlag ) !== 0;
+
+				var depthMaterial = new MeshDepthMaterial( {
+
+					depthPacking: scope.depthPacking,
+
+					morphTargets: useMorphing,
+					skinning: useSkinning
+
+				} );
+
+				_depthMaterials[ i ] = depthMaterial;
+
+				//
+
+				var distanceMaterial = new MeshDistanceMaterial( {
+
+					morphTargets: useMorphing,
+					skinning: useSkinning
+
+				} );
+
+				_distanceMaterials[ i ] = distanceMaterial;
+
+			}
+		}
+
 
 		var materialVariants = _depthMaterials;
 		var customMaterial = object.customDepthMaterial;
@@ -280,11 +301,15 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 
 		}
 
+		var result = null;
+
 		if ( ! customMaterial ) {
 
 			var useMorphing = false;
 
 			if ( material.morphTargets ) {
+				
+				var geometry = object.geometry;
 
 				if ( geometry && geometry.isBufferGeometry ) {
 
