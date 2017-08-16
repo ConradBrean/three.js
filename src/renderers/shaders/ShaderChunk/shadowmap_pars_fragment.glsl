@@ -29,17 +29,23 @@
 	#endif
 	*/
 
-	float texture2DCompare( sampler2D depths, vec2 uv, float compare ) {
+	float getDepth( sampler2D depths, vec2 uv ) {
 
 		#if SHADOWMAP_DEPTH_PACKING == 3201
 
-			return step( compare, unpackRGBAToDepth( texture2D( depths, uv ) ) );
+			return unpackRGBAToDepth( texture2D( depths, uv ) );
 
 		#elif SHADOWMAP_DEPTH_PACKING == 3202
 
-			return step( compare, texture2D( depths, uv ).r );
+			return texture2D( depths, uv ).r;
 
 		#endif
+
+	}
+
+	float texture2DCompare( sampler2D depths, vec2 uv, float compare ) {
+
+		return step( compare, getDepth( depths, uv ) );
 
 	}
 
@@ -86,37 +92,47 @@
 
 		#if defined( SHADOWMAP_TYPE_PCF )
 
-			vec2 texelSize = vec2( 1.0 ) / shadowMapSize;
+			vec2 texelSize = vec2( 1.0 ) / shadowMapSize * shadowRadius;
 
-			float dx0 = - texelSize.x * shadowRadius;
-			float dy0 = - texelSize.y * shadowRadius;
-			float dx1 = + texelSize.x * shadowRadius;
-			float dy1 = + texelSize.y * shadowRadius;
+			vec2 centroidUV = floor( shadowCoord.xy * shadowMapSize + 0.5 ) / shadowMapSize;
+			vec2 f = fract( shadowCoord.xy * shadowMapSize + 0.5 );
 
-			shadow = (
-				texture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, dy0 * 2.0 ), shadowCoord.z ) +
-				texture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, dy0 ), shadowCoord.z ) +
-				texture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy0 ), shadowCoord.z ) +
-				texture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, dy0 ), shadowCoord.z ) +
-				texture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0 * 2.0, 0.0 ), shadowCoord.z ) +
-				texture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, 0.0 ), shadowCoord.z ) +
-				texture2DCompare( shadowMap, shadowCoord.xy, shadowCoord.z ) +
-				texture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1 * 2.0, 0.0 ), shadowCoord.z ) +
-				texture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, 0.0 ), shadowCoord.z ) +
-				texture2DCompare( shadowMap, shadowCoord.xy + vec2( dx0, dy1 ), shadowCoord.z ) +
-				texture2DCompare( shadowMap, shadowCoord.xy + vec2( 0.0, dy1 ), shadowCoord.z ) +
-				texture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, dy1 ), shadowCoord.z ) +
-				texture2DCompare( shadowMap, shadowCoord.xy + vec2( dx1, dy1 * 2.0 ), shadowCoord.z )
-			) * ( 1.0 / 13.0 );
+			float dx0 = - texelSize.x;
+			float dy0 = - texelSize.y;
+			float dx1 = + texelSize.x;
+			float dy1 = + texelSize.y;
+
+			vec4 shadowVals1;
+			vec4 shadowVals2;
+
+			shadowVals1.x = getDepth( shadowMap, centroidUV + vec2( dx0, dy0 ) );
+			shadowVals1.y = getDepth( shadowMap, centroidUV + vec2( 0.0, dy0 ) );
+			shadowVals1.z = getDepth( shadowMap, centroidUV + vec2( dx1, dy0 ) );
+			shadowVals1.w = getDepth( shadowMap, centroidUV + vec2( dx0, 0.0 ) );
+
+			float centerValue = step( shadowCoord.z, getDepth( shadowMap, centroidUV ) );
+
+			shadowVals2.x = getDepth( shadowMap, centroidUV + vec2( dx1, 0.0 ) );
+			shadowVals2.y = getDepth( shadowMap, centroidUV + vec2( dx0, dy1 ) );
+			shadowVals2.z = getDepth( shadowMap, centroidUV + vec2( 0.0, dy1 ) );
+			shadowVals2.w = getDepth( shadowMap, centroidUV + vec2( dx1, dy1 ) );
+
+			vec4 step1 = step( shadowCoord.zzzz, shadowVals1 );
+			vec4 step2 = step( shadowCoord.zzzz, shadowVals2 );
+
+			vec4 val1 = step1 * vec4( ( 1.0 - f.x) * ( 1.0 - f.y ), ( 1.0 - f.y ), ( f.x ) * ( 1.0 - f.y), ( 1.0 - f.x) );
+			vec4 val2 = step2 * vec4( ( f.x ), ( 1.0 - f.x ) * ( f.y ), ( f.y ), ( f.x * f.y ) );
+
+			shadow = ( val1.x + val1.y + val1.z + val1.w + centerValue + val2.x + val2.y + val2.z + val2.w ) * 0.25;
 
 		#elif defined( SHADOWMAP_TYPE_PCF_SOFT )
 
-			vec2 texelSize = vec2( 1.0 ) / shadowMapSize;
+			vec2 texelSize = vec2( 1.0 ) / shadowMapSize * shadowRadius;
 
-			float dx0 = - texelSize.x * shadowRadius;
-			float dy0 = - texelSize.y * shadowRadius;
-			float dx1 = + texelSize.x * shadowRadius;
-			float dy1 = + texelSize.y * shadowRadius;
+			float dx0 = - texelSize.x;
+			float dy0 = - texelSize.y;
+			float dx1 = + texelSize.x;
+			float dy1 = + texelSize.y;
 
 			shadow = (
 				texture2DShadowLerp( shadowMap, shadowMapSize, shadowCoord.xy + vec2( dx0, dy0 ), shadowCoord.z ) +
