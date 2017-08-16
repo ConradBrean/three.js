@@ -116,6 +116,7 @@ var UniformsLib = {
 			shadow: {},
 			shadowBias: {},
 			shadowRadius: {},
+			shadowStrength: {},
 			shadowMapSize: {}
 		} },
 
@@ -134,6 +135,7 @@ var UniformsLib = {
 			shadow: {},
 			shadowBias: {},
 			shadowRadius: {},
+			shadowStrength: {},
 			shadowMapSize: {}
 		} },
 
@@ -149,6 +151,7 @@ var UniformsLib = {
 			shadow: {},
 			shadowBias: {},
 			shadowRadius: {},
+			shadowStrength: {},
 			shadowMapSize: {},
 			shadowCameraNear: {},
 			shadowCameraFar: {}
