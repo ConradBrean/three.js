@@ -159,7 +159,7 @@ function WebGLLights() {
 
 				var uniforms = cache.get( light );
 
-				uniforms.color.copy( light.color ).multiplyScalar( light.intensity );
+				uniforms.color.copy( color ).multiplyScalar( intensity );
 				uniforms.direction.setFromMatrixPosition( light.matrixWorld );
 				vector3.setFromMatrixPosition( light.target.matrixWorld );
 				uniforms.direction.sub( vector3 );
