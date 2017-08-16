@@ -146,19 +146,21 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 
 				var pars = { minFilter: NearestFilter, magFilter: NearestFilter, format: RGBAFormat };
 
-				if (scope.depthPacking === FloatDepthPacking && scope.type == PCFShadowMap) {
+				if ( scope.depthPacking === FloatDepthPacking ) {
 					
 					pars.type = FloatType;
-					
-					if ( scope.type == PCFShadowMap ) { // seems to be giving nicer results
-						
-						pars.minFilter = LinearFilter;
-						pars.magFilter = LinearFilter;
-						
-					}
+
+				} else if (scope.depthPacking === RGBADepthPacking ) {
+
+					pars.type = UnsignedByteType;
+
+				} else {
+
+					console.error( 'unknown depth packing format : ' + scope.depthPacking );
+					this.enabled = false;
+					return;
 
 				}
- 
 
 				shadow.map = new WebGLRenderTarget( _shadowMapSize.x, _shadowMapSize.y, pars );
 				shadow.map.texture.name = light.name + ".shadowMap";
