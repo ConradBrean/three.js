@@ -50,9 +50,7 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 
 	// init
 
-	this.depthPacking = // use float texture only when it can be interpolated by gpu ( most cases )
-		_renderer.extensions.get( 'OES_texture_float' ) && _renderer.extensions.get( 'OES_texture_float_linear' )
-	? FloatDepthPacking : RGBADepthPacking;
+	this.depthPacking = _renderer.extensions.get( 'OES_texture_float' ) ? FloatDepthPacking : RGBADepthPacking;
 
 
 	var scope = this;
