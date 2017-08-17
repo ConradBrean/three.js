@@ -246,12 +246,13 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 				var position = geometry.attributes.position;
 				var uv = geometry.attributes.uv;
 				var i, l;
+				var drawRange = geometry.drawRange;
 
 				if ( index !== null ) {
 
 					// indexed buffer geometry
-
-					for ( i = 0, l = index.count; i < l; i += 3 ) {
+					
+					for ( i = drawRange.start, l = Math.min(index.count, i + drawRange.count); i < l; i += 3 ) {
 
 						a = index.getX( i );
 						b = index.getX( i + 1 );
@@ -272,7 +273,7 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 
 					// non-indexed buffer geometry
 
-					for ( i = 0, l = position.count; i < l; i += 3 ) {
+					for ( i = drawRange.start, l = Math.min(position.count, i + drawRange.count); i < l; i += 3 ) {
 
 						a = i;
 						b = i + 1;
