@@ -181,7 +181,7 @@ Object.assign( EventDispatcher.prototype, {
 
 } );
 
-var REVISION = '87dev';
+var REVISION = '87';
 var MOUSE = { LEFT: 0, MIDDLE: 1, RIGHT: 2 };
 var CullFaceNone = 0;
 var CullFaceBack = 1;
@@ -19629,8 +19629,6 @@ function WebGLState( gl, extensions, utils ) {
 	var currentPolygonOffsetFactor = null;
 	var currentPolygonOffsetUnits = null;
 
-	var currentScissorTest = null;
-
 	var maxTextures = gl.getParameter( gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS );
 
 	var version = parseFloat( /^WebGL\ ([0-9])/.exec( gl.getParameter( gl.VERSION ) )[ 1 ] );
@@ -20049,15 +20047,7 @@ function WebGLState( gl, extensions, utils ) {
 
 	}
 
-	function getScissorTest() {
-
-		return currentScissorTest;
-
-	}
-
 	function setScissorTest( scissorTest ) {
-
-		currentScissorTest = scissorTest;
 
 		if ( scissorTest ) {
 
@@ -20228,7 +20218,6 @@ function WebGLState( gl, extensions, utils ) {
 		setLineWidth: setLineWidth,
 		setPolygonOffset: setPolygonOffset,
 
-		getScissorTest: getScissorTest,
 		setScissorTest: setScissorTest,
 
 		activeTexture: activeTexture,
@@ -20415,7 +20404,7 @@ function WebVRManager( renderer ) {
 
 	function onVRDisplayPresentChange() {
 
-		if ( device.isPresenting ) {
+		if ( device !== null && device.isPresenting ) {
 
 			var eyeParameters = device.getEyeParameters( 'left' );
 			var renderWidth = eyeParameters.renderWidth;
@@ -21920,21 +21909,34 @@ function WebGLRenderer( parameters ) {
 
 	};
 
-	// Rendering
+	// Animation Loop
+
+	var isAnimating = false;
+	var onAnimationFrame = null;
+
+	function start() {
+
+		if ( isAnimating ) return;
+		( vr.getDevice() || window ).requestAnimationFrame( loop );
+		isAnimating = true;
+
+	}
+
+	function loop( time ) {
+
+		if ( onAnimationFrame !== null ) onAnimationFrame( time );
+		( vr.getDevice() || window ).requestAnimationFrame( loop );
+
+	}
 
 	this.animate = function ( callback ) {
 
-		function onFrame() {
-
-			callback();
-
-			( vr.getDevice() || window ).requestAnimationFrame( onFrame );
-
-		}
-
-		( vr.getDevice() || window ).requestAnimationFrame( onFrame );
+		onAnimationFrame = callback;
+		start();
 
 	};
+
+	// Rendering
 
 	this.render = function ( scene, camera, renderTarget, forceClear ) {
 
@@ -22273,8 +22275,6 @@ function WebGLRenderer( parameters ) {
 						var height = bounds.w * _height;
 
 						state.viewport( _currentViewport.set( x, y, width, height ).multiplyScalar( _pixelRatio ) );
-						state.scissor( _currentScissor.set( x, y, width, height ).multiplyScalar( _pixelRatio ) );
-						state.setScissorTest( true );
 
 						renderObject( object, scene, camera2, geometry, material, group );
 
@@ -22727,10 +22727,6 @@ function WebGLRenderer( parameters ) {
 
 				}
 
-			} else if ( material.isMeshNormalMaterial ) {
-
-				refreshUniformsCommon( m_uniforms, material );
-
 			} else if ( material.isMeshDepthMaterial ) {
 
 				refreshUniformsCommon( m_uniforms, material );
@@ -22743,6 +22739,7 @@ function WebGLRenderer( parameters ) {
 
 			} else if ( material.isMeshNormalMaterial ) {
 
+				refreshUniformsCommon( m_uniforms, material );
 				refreshUniformsNormal( m_uniforms, material );
 
 			} else if ( material.isLineBasicMaterial ) {
@@ -43393,7 +43390,7 @@ Object.defineProperties( Material.prototype, {
 		set: function ( value ) {
 
 			console.warn( 'THREE.' + this.type + ': .shading has been removed. Use the boolean .flatShading instead.' );
-			this.flatShading = ( value === THREE.FlatShading ) ? true : false;
+			this.flatShading = ( value === FlatShading );
 
 		}
 	}
