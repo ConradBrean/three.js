@@ -924,32 +924,8 @@
           "!type": "boolean",
           "!doc": "todo"
         },
-        "getWrapPoints": {
-          "!type": "fn(oldPts: todo, path: todo) -> todo",
-          "!doc": "todo"
-        },
-        "createPointsGeometry": {
-          "!type": "fn(divisions: todo) -> todo",
-          "!doc": "todo"
-        },
-        "addWrapPath": {
-          "!type": "fn(bendpath: todo) -> todo",
-          "!doc": "todo"
-        },
-        "createGeometry": {
-          "!type": "fn(points: todo) -> todo",
-          "!doc": "todo"
-        },
         "add": {
           "!type": "fn(curve: todo) -> todo",
-          "!doc": "todo"
-        },
-        "getTransformedSpacedPoints": {
-          "!type": "fn(segments: todo, bends: todo) -> todo",
-          "!doc": "todo"
-        },
-        "createSpacedPointsGeometry": {
-          "!type": "fn(divisions: todo) -> todo",
           "!doc": "todo"
         },
         "closePath": {
@@ -961,14 +937,6 @@
           "!doc": "todo"
         },
         "getCurveLengths": {
-          "!type": "fn() -> todo",
-          "!doc": "todo"
-        },
-        "getTransformedPoints": {
-          "!type": "fn(segments: todo, bends: todo) -> todo",
-          "!doc": "todo"
-        },
-        "checkConnection": {
           "!type": "fn() -> todo",
           "!doc": "todo"
         }
@@ -992,7 +960,7 @@
           "!type": "array",
           "!doc": "The possible actions that define the path."
         },
-        "fromPoints": {
+        "setFromPoints": {
           "!type": "fn(vectors) -> todo",
           "!doc": "Adds to the Path from the points. The first vector defines the offset. After that the lines get defined."
         },
@@ -1044,23 +1012,7 @@
           "!type": "array",
           "!doc": "todo"
         },
-        "makeGeometry": {
-          "!type": "fn(options: todo) -> todo",
-          "!doc": "Convenience method to return ShapeGeometry"
-        },
-        "extractAllPoints": {
-          "!type": "fn(divisions: todo) -> todo",
-          "!doc": "Get points of shape and holes (keypoints based on segments parameter)"
-        },
-        "extrude": {
-          "!type": "fn(options: todo) -> todo",
-          "!doc": "Convenience method to return ExtrudeGeometry"
-        },
         "extractPoints": {
-          "!type": "fn(divisions: todo) -> todo",
-          "!doc": "todo"
-        },
-        "extractAllSpacedPoints": {
           "!type": "fn(divisions: todo) -> todo",
           "!doc": "todo"
         },
@@ -1068,10 +1020,6 @@
           "!type": "fn(divisions: todo) -> todo",
           "!doc": "Get points of holes"
         },
-        "getSpacedPointsHoles": {
-          "!type": "fn(divisions: todo) -> todo",
-          "!doc": "Get points of holes (spaced by regular distance)"
-        }
       },
       "!doc": "Defines a 2d shape plane using paths.",
       "!type": "fn()"

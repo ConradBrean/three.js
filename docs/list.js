@@ -211,7 +211,6 @@ var list = {
 		"Lights / Shadows": {
 			"DirectionalLightShadow": "api/lights/shadows/DirectionalLightShadow",
 			"LightShadow": "api/lights/shadows/LightShadow",
-			"RectAreaLightShadow": "api/lights/shadows/RectAreaLightShadow",
 			"SpotLightShadow": "api/lights/shadows/SpotLightShadow"
 		},
 
@@ -355,7 +354,8 @@ var list = {
 			"PCDLoader": "examples/loaders/PCDLoader",
 			"PDBLoader": "examples/loaders/PDBLoader",
 			"SVGLoader": "examples/loaders/SVGLoader",
-			"TGALoader": "examples/loaders/TGALoader"
+			"TGALoader": "examples/loaders/TGALoader",
+			"PRWMLoader": "examples/loaders/PRWMLoader"
 		},
 
 		"Exporters": {

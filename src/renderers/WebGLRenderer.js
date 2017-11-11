@@ -437,7 +437,7 @@ function WebGLRenderer( parameters ) {
 
 	// Clearing
 
-	this.getClearColor = function() {
+	this.getClearColor = function () {
 
 		return background.getClearColor();
 
@@ -449,13 +449,13 @@ function WebGLRenderer( parameters ) {
 
 	};
 
-	this.getClearAlpha = function() {
+	this.getClearAlpha = function () {
 
 		return background.getClearAlpha();
 
 	};
 
-	this.setClearAlpha = function() {
+	this.setClearAlpha = function () {
 
 		background.setClearAlpha.apply( background, arguments );
 
@@ -1024,7 +1024,19 @@ function WebGLRenderer( parameters ) {
 	function start() {
 
 		if ( isAnimating ) return;
-		( vr.getDevice() || window ).requestAnimationFrame( loop );
+
+		var device = vr.getDevice();
+		
+		if ( device && device.isPresenting ) {
+
+			device.requestAnimationFrame( loop );
+
+		} else {
+
+			window.requestAnimationFrame( loop );
+
+		}
+
 		isAnimating = true;
 
 	}
@@ -1032,7 +1044,18 @@ function WebGLRenderer( parameters ) {
 	function loop( time ) {
 
 		if ( onAnimationFrame !== null ) onAnimationFrame( time );
-		( vr.getDevice() || window ).requestAnimationFrame( loop );
+
+		var device = vr.getDevice();
+		
+		if ( device && device.isPresenting ) {
+
+			device.requestAnimationFrame( loop );
+
+		} else {
+
+			window.requestAnimationFrame( loop );
+
+		}
 
 	}
 
