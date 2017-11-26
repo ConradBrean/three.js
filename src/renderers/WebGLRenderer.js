@@ -1820,7 +1820,21 @@ function WebGLRenderer( parameters ) {
 
 			}
 
-			if ( material.isMeshBasicMaterial ) {
+			if ( material.isShaderMaterial || material.isRawShaderMaterial ){
+
+				// do nothing
+
+			} else if ( material.isMeshDepthMaterial ) {
+				
+				refreshUniformsCommon( m_uniforms, material );
+				refreshUniformsDepth( m_uniforms, material );
+
+			}  else if ( material.isShadowMaterial ) {
+				
+				m_uniforms.color.value = material.color;
+				m_uniforms.opacity.value = material.opacity;
+
+			} else if ( material.isMeshBasicMaterial ) {
 
 				refreshUniformsCommon( m_uniforms, material );
 
@@ -1857,11 +1871,6 @@ function WebGLRenderer( parameters ) {
 
 				}
 
-			} else if ( material.isMeshDepthMaterial ) {
-
-				refreshUniformsCommon( m_uniforms, material );
-				refreshUniformsDepth( m_uniforms, material );
-
 			} else if ( material.isMeshDistanceMaterial ) {
 
 				refreshUniformsCommon( m_uniforms, material );
@@ -1885,11 +1894,6 @@ function WebGLRenderer( parameters ) {
 			} else if ( material.isPointsMaterial ) {
 
 				refreshUniformsPoints( m_uniforms, material );
-
-			} else if ( material.isShadowMaterial ) {
-
-				m_uniforms.color.value = material.color;
-				m_uniforms.opacity.value = material.opacity;
 
 			}
 
