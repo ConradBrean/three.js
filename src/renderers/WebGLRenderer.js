@@ -2539,24 +2539,17 @@ function WebGLRenderer( parameters ) {
 
 			}
 
-			if ( _gl.checkFramebufferStatus( _gl.FRAMEBUFFER ) === _gl.FRAMEBUFFER_COMPLETE ) {
-
-				// the following if statement ensures valid read requests (no out-of-bounds pixels, see #8604)
-
-				if ( ( x >= 0 && x <= ( renderTarget.width - width ) ) && ( y >= 0 && y <= ( renderTarget.height - height ) ) ) {
+			if ( _gl.checkFramebufferStatus( _gl.FRAMEBUFFER ) === _gl.FRAMEBUFFER_COMPLETE 
+				&&  ( x >= 0 && x <= ( renderTarget.width - width ) ) 
+				&& ( y >= 0 && y <= ( renderTarget.height - height ) ) ) {
 
 					_gl.readPixels( x, y, width, height, utils.convert( textureFormat ), utils.convert( textureType ), buffer );
-
-				} else {
-
-					return false;
-					
-				}
 
 			} else {
 
 				console.error( 'THREE.WebGLRenderer.readRenderTargetPixels: readPixels from renderTarget failed. Framebuffer not complete.' );
-
+				return false;
+				
 			}
 
 		} catch ( e ) {
