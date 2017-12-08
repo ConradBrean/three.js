@@ -2552,6 +2552,7 @@ function WebGLRenderer( parameters ) {
 			} else {
 
 				console.error( 'THREE.WebGLRenderer.readRenderTargetPixels: readPixels from renderTarget failed. Framebuffer not complete.' );
+				return false;
 
 			}
 
