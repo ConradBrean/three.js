@@ -140,7 +140,7 @@
 
 				//
 
-				gui = new dat.GUI();
+				var gui = new dat.GUI();
 
 				gui.add( parameters, 'distortionScale', 0, 8, 0.1 );
 				gui.add( parameters, 'size', 0.1, 10, 0.1 );
@@ -154,9 +154,10 @@
 
 			function setWater() {
 
+				var waterGeometry = new THREE.PlaneBufferGeometry( parameters.oceanSide * 5, parameters.oceanSide * 5 );
+
 				water = new THREE.Water(
-					parameters.oceanSide * 5,
-					parameters.oceanSide * 5,
+					waterGeometry,
 					{
 						textureWidth: 512,
 						textureHeight: 512,
