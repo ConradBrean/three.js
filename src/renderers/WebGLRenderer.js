@@ -758,6 +758,11 @@ function WebGLRenderer( parameters ) {
 		var rangeStart = geometry.drawRange.start * rangeFactor;
 		var rangeCount = geometry.drawRange.count * rangeFactor;
 
+		if (object.isMesh){
+			rangeStart = Math.max(rangeStart, object.drawRange.start);
+			rangeCount = Math.min(rangeCount, object.drawRange.count);
+		}
+
 		var groupStart = group !== null ? group.start * rangeFactor : 0;
 		var groupCount = group !== null ? group.count * rangeFactor : Infinity;
 

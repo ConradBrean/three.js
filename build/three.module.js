@@ -16029,6 +16029,7 @@ function Mesh( geometry, material ) {
 	Object3D.call( this );
 
 	this.type = 'Mesh';
+	this.drawRange = { start: 0, count:Infinity };
 
 	this.geometry = geometry !== undefined ? geometry : new BufferGeometry();
 	this.material = material !== undefined ? material : new MeshBasicMaterial( { color: Math.random() * 0xffffff } );
@@ -21994,6 +21995,11 @@ function WebGLRenderer( parameters ) {
 
 		var rangeStart = geometry.drawRange.start * rangeFactor;
 		var rangeCount = geometry.drawRange.count * rangeFactor;
+
+		if (object.isMesh){
+			rangeStart = Math.max(rangeStart, object.drawRange.start);
+			rangeCount = Math.min(rangeCount, object.drawRange.count);
+		}
 
 		var groupStart = group !== null ? group.start * rangeFactor : 0;
 		var groupCount = group !== null ? group.count * rangeFactor : Infinity;
