@@ -466,6 +466,42 @@ Object.assign( Box3.prototype, {
 
 	}(),
 
+	applyMatrix3: function () {
+
+		var points = [
+			new Vector3(),
+			new Vector3(),
+			new Vector3(),
+			new Vector3(),
+			new Vector3(),
+			new Vector3(),
+			new Vector3(),
+			new Vector3()
+		];
+
+		return function applyMatrix3( matrix ) {
+
+			// transform of empty box is an empty box.
+			if ( this.isEmpty() ) return this;
+
+			// NOTE: I am using a binary pattern to specify all 2^3 combinations below
+			points[ 0 ].set( this.min.x, this.min.y, this.min.z ).applyMatrix3( matrix ); // 000
+			points[ 1 ].set( this.min.x, this.min.y, this.max.z ).applyMatrix3( matrix ); // 001
+			points[ 2 ].set( this.min.x, this.max.y, this.min.z ).applyMatrix3( matrix ); // 010
+			points[ 3 ].set( this.min.x, this.max.y, this.max.z ).applyMatrix3( matrix ); // 011
+			points[ 4 ].set( this.max.x, this.min.y, this.min.z ).applyMatrix3( matrix ); // 100
+			points[ 5 ].set( this.max.x, this.min.y, this.max.z ).applyMatrix3( matrix ); // 101
+			points[ 6 ].set( this.max.x, this.max.y, this.min.z ).applyMatrix3( matrix ); // 110
+			points[ 7 ].set( this.max.x, this.max.y, this.max.z ).applyMatrix3( matrix ); // 111
+
+			this.setFromPoints( points );
+
+			return this;
+
+		};
+
+	}(),
+
 	translate: function ( offset ) {
 
 		this.min.add( offset );
