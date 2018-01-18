@@ -32,6 +32,11 @@ export default [{
 	// sourceMap: true,
 	output: [
 		{
+			format: 'umd',
+			name: 'THREE',
+			file: 'build/three.js'
+		},
+		{
 			format: 'es',
 			file: 'build/three.module.js'
 		}
@@ -45,8 +50,13 @@ export default [{
 	// sourceMap: true,
 	output: [
 		{
+			format: 'umd',
+			name: 'THREE',
+			file: 'build/c_three.js'
+		},
+		{
 			format: 'es',
-			file: 'build/three.js'
+			file: 'build/c_three.module.js'
 		}
 	]
 }];
