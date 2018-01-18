@@ -23,7 +23,7 @@ function glsl() {
 
 }
 
-export default {
+export default [{
 	input: 'src/Three.js',
 	indent: '\t',
 	plugins: [
@@ -32,13 +32,21 @@ export default {
 	// sourceMap: true,
 	output: [
 		{
-			format: 'umd',
-			name: 'THREE',
-			file: 'build/three.js'
-		},
-		{
 			format: 'es',
 			file: 'build/three.module.js'
 		}
 	]
-};
+}, {
+	input: 'src/CustomThree.js',
+	indent: '\t',
+	plugins: [
+		glsl()
+	],
+	// sourceMap: true,
+	output: [
+		{
+			format: 'es',
+			file: 'build/three.js'
+		}
+	]
+}];
