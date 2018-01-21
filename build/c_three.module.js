@@ -2179,7 +2179,9 @@ Object.assign( Quaternion.prototype, {
 
 	inverse: function () {
 
-		return this.conjugate().normalize();
+		// quaternion is assumed to have unit length
+
+		return this.conjugate();
 
 	},
 
@@ -4528,30 +4530,6 @@ WebGLRenderTarget.prototype = Object.assign( Object.create( EventDispatcher.prot
 } );
 
 /**
- * @author alteredq / http://alteredqualia.com/
- */
-
-function DataTexture( data, width, height, format, type, mapping, wrapS, wrapT, magFilter, minFilter, anisotropy, encoding ) {
-
-	Texture.call( this, null, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy, encoding );
-
-	this.image = { data: data, width: width, height: height };
-
-	this.magFilter = magFilter !== undefined ? magFilter : NearestFilter;
-	this.minFilter = minFilter !== undefined ? minFilter : NearestFilter;
-
-	this.generateMipmaps = false;
-	this.flipY = false;
-	this.unpackAlignment = 1;
-
-}
-
-DataTexture.prototype = Object.create( Texture.prototype );
-DataTexture.prototype.constructor = DataTexture;
-
-DataTexture.prototype.isDataTexture = true;
-
-/**
  * @author mrdoob / http://mrdoob.com/
  */
 
@@ -6530,993 +6508,6 @@ ShaderLib.physical = {
 };
 
 /**
- * @author bhouston / http://clara.io
- */
-
-function Box2( min, max ) {
-
-	this.min = ( min !== undefined ) ? min : new Vector2( + Infinity, + Infinity );
-	this.max = ( max !== undefined ) ? max : new Vector2( - Infinity, - Infinity );
-
-}
-
-Object.assign( Box2.prototype, {
-
-	set: function ( min, max ) {
-
-		this.min.copy( min );
-		this.max.copy( max );
-
-		return this;
-
-	},
-
-	setFromPoints: function ( points ) {
-
-		this.makeEmpty();
-
-		for ( var i = 0, il = points.length; i < il; i ++ ) {
-
-			this.expandByPoint( points[ i ] );
-
-		}
-
-		return this;
-
-	},
-
-	setFromCenterAndSize: function () {
-
-		var v1 = new Vector2();
-
-		return function setFromCenterAndSize( center, size ) {
-
-			var halfSize = v1.copy( size ).multiplyScalar( 0.5 );
-			this.min.copy( center ).sub( halfSize );
-			this.max.copy( center ).add( halfSize );
-
-			return this;
-
-		};
-
-	}(),
-
-	clone: function () {
-
-		return new this.constructor().copy( this );
-
-	},
-
-	copy: function ( box ) {
-
-		this.min.copy( box.min );
-		this.max.copy( box.max );
-
-		return this;
-
-	},
-
-	makeEmpty: function () {
-
-		this.min.x = this.min.y = + Infinity;
-		this.max.x = this.max.y = - Infinity;
-
-		return this;
-
-	},
-
-	isEmpty: function () {
-
-		// this is a more robust check for empty than ( volume <= 0 ) because volume can get positive with two negative axes
-
-		return ( this.max.x < this.min.x ) || ( this.max.y < this.min.y );
-
-	},
-
-	getCenter: function ( optionalTarget ) {
-
-		var result = optionalTarget || new Vector2();
-		return this.isEmpty() ? result.set( 0, 0 ) : result.addVectors( this.min, this.max ).multiplyScalar( 0.5 );
-
-	},
-
-	getSize: function ( optionalTarget ) {
-
-		var result = optionalTarget || new Vector2();
-		return this.isEmpty() ? result.set( 0, 0 ) : result.subVectors( this.max, this.min );
-
-	},
-
-	expandByPoint: function ( point ) {
-
-		this.min.min( point );
-		this.max.max( point );
-
-		return this;
-
-	},
-
-	expandByVector: function ( vector ) {
-
-		this.min.sub( vector );
-		this.max.add( vector );
-
-		return this;
-
-	},
-
-	expandByScalar: function ( scalar ) {
-
-		this.min.addScalar( - scalar );
-		this.max.addScalar( scalar );
-
-		return this;
-
-	},
-
-	containsPoint: function ( point ) {
-
-		return point.x < this.min.x || point.x > this.max.x ||
-			point.y < this.min.y || point.y > this.max.y ? false : true;
-
-	},
-
-	containsBox: function ( box ) {
-
-		return this.min.x <= box.min.x && box.max.x <= this.max.x &&
-			this.min.y <= box.min.y && box.max.y <= this.max.y;
-
-	},
-
-	getParameter: function ( point, optionalTarget ) {
-
-		// This can potentially have a divide by zero if the box
-		// has a size dimension of 0.
-
-		var result = optionalTarget || new Vector2();
-
-		return result.set(
-			( point.x - this.min.x ) / ( this.max.x - this.min.x ),
-			( point.y - this.min.y ) / ( this.max.y - this.min.y )
-		);
-
-	},
-
-	intersectsBox: function ( box ) {
-
-		// using 4 splitting planes to rule out intersections
-
-		return box.max.x < this.min.x || box.min.x > this.max.x ||
-			box.max.y < this.min.y || box.min.y > this.max.y ? false : true;
-
-	},
-
-	clampPoint: function ( point, optionalTarget ) {
-
-		var result = optionalTarget || new Vector2();
-		return result.copy( point ).clamp( this.min, this.max );
-
-	},
-
-	distanceToPoint: function () {
-
-		var v1 = new Vector2();
-
-		return function distanceToPoint( point ) {
-
-			var clampedPoint = v1.copy( point ).clamp( this.min, this.max );
-			return clampedPoint.sub( point ).length();
-
-		};
-
-	}(),
-
-	intersect: function ( box ) {
-
-		this.min.max( box.min );
-		this.max.min( box.max );
-
-		return this;
-
-	},
-
-	union: function ( box ) {
-
-		this.min.min( box.min );
-		this.max.max( box.max );
-
-		return this;
-
-	},
-
-	translate: function ( offset ) {
-
-		this.min.add( offset );
-		this.max.add( offset );
-
-		return this;
-
-	},
-
-	equals: function ( box ) {
-
-		return box.min.equals( this.min ) && box.max.equals( this.max );
-
-	}
-
-} );
-
-/**
- * @author mikael emtinger / http://gomo.se/
- * @author alteredq / http://alteredqualia.com/
- */
-
-function WebGLFlareRenderer( renderer, gl, state, textures, capabilities ) {
-
-	var vertexBuffer, elementBuffer;
-	var shader, program, attributes, uniforms;
-
-	var tempTexture, occlusionTexture;
-
-	function init() {
-
-		var vertices = new Float32Array( [
-			- 1, - 1, 0, 0,
-			  1, - 1, 1, 0,
-			  1, 1, 1, 1,
-			- 1, 1, 0, 1
-		] );
-
-		var faces = new Uint16Array( [
-			0, 1, 2,
-			0, 2, 3
-		] );
-
-		// buffers
-
-		vertexBuffer = gl.createBuffer();
-		elementBuffer = gl.createBuffer();
-
-		gl.bindBuffer( gl.ARRAY_BUFFER, vertexBuffer );
-		gl.bufferData( gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW );
-
-		gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, elementBuffer );
-		gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, faces, gl.STATIC_DRAW );
-
-		// textures
-
-		tempTexture = gl.createTexture();
-		occlusionTexture = gl.createTexture();
-
-		state.bindTexture( gl.TEXTURE_2D, tempTexture );
-		gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGB, 16, 16, 0, gl.RGB, gl.UNSIGNED_BYTE, null );
-		gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE );
-		gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE );
-		gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
-		gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST );
-
-		state.bindTexture( gl.TEXTURE_2D, occlusionTexture );
-		gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, 16, 16, 0, gl.RGBA, gl.UNSIGNED_BYTE, null );
-		gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE );
-		gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE );
-		gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
-		gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST );
-
-		shader = {
-
-			vertexShader: [
-
-				'uniform lowp int renderType;',
-
-				'uniform vec3 screenPosition;',
-				'uniform vec2 scale;',
-				'uniform float rotation;',
-
-				'uniform sampler2D occlusionMap;',
-
-				'attribute vec2 position;',
-				'attribute vec2 uv;',
-
-				'varying vec2 vUV;',
-				'varying float vVisibility;',
-
-				'void main() {',
-
-				'	vUV = uv;',
-
-				'	vec2 pos = position;',
-
-				'	if ( renderType == 2 ) {',
-
-				'		vec4 visibility = texture2D( occlusionMap, vec2( 0.1, 0.1 ) );',
-				'		visibility += texture2D( occlusionMap, vec2( 0.5, 0.1 ) );',
-				'		visibility += texture2D( occlusionMap, vec2( 0.9, 0.1 ) );',
-				'		visibility += texture2D( occlusionMap, vec2( 0.9, 0.5 ) );',
-				'		visibility += texture2D( occlusionMap, vec2( 0.9, 0.9 ) );',
-				'		visibility += texture2D( occlusionMap, vec2( 0.5, 0.9 ) );',
-				'		visibility += texture2D( occlusionMap, vec2( 0.1, 0.9 ) );',
-				'		visibility += texture2D( occlusionMap, vec2( 0.1, 0.5 ) );',
-				'		visibility += texture2D( occlusionMap, vec2( 0.5, 0.5 ) );',
-
-				'		vVisibility =        visibility.r / 9.0;',
-				'		vVisibility *= 1.0 - visibility.g / 9.0;',
-				'		vVisibility *=       visibility.b / 9.0;',
-				'		vVisibility *= 1.0 - visibility.a / 9.0;',
-
-				'		pos.x = cos( rotation ) * position.x - sin( rotation ) * position.y;',
-				'		pos.y = sin( rotation ) * position.x + cos( rotation ) * position.y;',
-
-				'	}',
-
-				'	gl_Position = vec4( ( pos * scale + screenPosition.xy ).xy, screenPosition.z, 1.0 );',
-
-				'}'
-
-			].join( '\n' ),
-
-			fragmentShader: [
-
-				'uniform lowp int renderType;',
-
-				'uniform sampler2D map;',
-				'uniform float opacity;',
-				'uniform vec3 color;',
-
-				'varying vec2 vUV;',
-				'varying float vVisibility;',
-
-				'void main() {',
-
-				// pink square
-
-				'	if ( renderType == 0 ) {',
-
-				'		gl_FragColor = vec4( 1.0, 0.0, 1.0, 0.0 );',
-
-				// restore
-
-				'	} else if ( renderType == 1 ) {',
-
-				'		gl_FragColor = texture2D( map, vUV );',
-
-				// flare
-
-				'	} else {',
-
-				'		vec4 texture = texture2D( map, vUV );',
-				'		texture.a *= opacity * vVisibility;',
-				'		gl_FragColor = texture;',
-				'		gl_FragColor.rgb *= color;',
-
-				'	}',
-
-				'}'
-
-			].join( '\n' )
-
-		};
-
-		program = createProgram( shader );
-
-		attributes = {
-			vertex: gl.getAttribLocation( program, 'position' ),
-			uv: gl.getAttribLocation( program, 'uv' )
-		};
-
-		uniforms = {
-			renderType: gl.getUniformLocation( program, 'renderType' ),
-			map: gl.getUniformLocation( program, 'map' ),
-			occlusionMap: gl.getUniformLocation( program, 'occlusionMap' ),
-			opacity: gl.getUniformLocation( program, 'opacity' ),
-			color: gl.getUniformLocation( program, 'color' ),
-			scale: gl.getUniformLocation( program, 'scale' ),
-			rotation: gl.getUniformLocation( program, 'rotation' ),
-			screenPosition: gl.getUniformLocation( program, 'screenPosition' )
-		};
-
-	}
-
-	/*
-	 * Render lens flares
-	 * Method: renders 16x16 0xff00ff-colored points scattered over the light source area,
-	 *         reads these back and calculates occlusion.
-	 */
-
-	this.render = function ( flares, scene, camera, viewport ) {
-
-		if ( flares.length === 0 ) return;
-
-		var tempPosition = new Vector3();
-
-		var invAspect = viewport.w / viewport.z,
-			halfViewportWidth = viewport.z * 0.5,
-			halfViewportHeight = viewport.w * 0.5;
-
-		var size = 16 / viewport.w,
-			scale = new Vector2( size * invAspect, size );
-
-		var screenPosition = new Vector3( 1, 1, 0 ),
-			screenPositionPixels = new Vector2( 1, 1 );
-
-		var validArea = new Box2();
-
-		validArea.min.set( viewport.x, viewport.y );
-		validArea.max.set( viewport.x + ( viewport.z - 16 ), viewport.y + ( viewport.w - 16 ) );
-
-		if ( program === undefined ) {
-
-			init();
-
-		}
-
-		state.useProgram( program );
-
-		state.initAttributes();
-		state.enableAttribute( attributes.vertex );
-		state.enableAttribute( attributes.uv );
-		state.disableUnusedAttributes();
-
-		// loop through all lens flares to update their occlusion and positions
-		// setup gl and common used attribs/uniforms
-
-		gl.uniform1i( uniforms.occlusionMap, 0 );
-		gl.uniform1i( uniforms.map, 1 );
-
-		gl.bindBuffer( gl.ARRAY_BUFFER, vertexBuffer );
-		gl.vertexAttribPointer( attributes.vertex, 2, gl.FLOAT, false, 2 * 8, 0 );
-		gl.vertexAttribPointer( attributes.uv, 2, gl.FLOAT, false, 2 * 8, 8 );
-
-		gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, elementBuffer );
-
-		state.disable( gl.CULL_FACE );
-		state.buffers.depth.setMask( false );
-
-		for ( var i = 0, l = flares.length; i < l; i ++ ) {
-
-			size = 16 / viewport.w;
-			scale.set( size * invAspect, size );
-
-			// calc object screen position
-
-			var flare = flares[ i ];
-
-			tempPosition.set( flare.matrixWorld.elements[ 12 ], flare.matrixWorld.elements[ 13 ], flare.matrixWorld.elements[ 14 ] );
-
-			tempPosition.applyMatrix4( camera.matrixWorldInverse );
-			tempPosition.applyMatrix4( camera.projectionMatrix );
-
-			// setup arrays for gl programs
-
-			screenPosition.copy( tempPosition );
-
-			// horizontal and vertical coordinate of the lower left corner of the pixels to copy
-
-			screenPositionPixels.x = viewport.x + ( screenPosition.x * halfViewportWidth ) + halfViewportWidth - 8;
-			screenPositionPixels.y = viewport.y + ( screenPosition.y * halfViewportHeight ) + halfViewportHeight - 8;
-
-			// screen cull
-
-			if ( validArea.containsPoint( screenPositionPixels ) === true ) {
-
-				// save current RGB to temp texture
-
-				state.activeTexture( gl.TEXTURE0 );
-				state.bindTexture( gl.TEXTURE_2D, null );
-				state.activeTexture( gl.TEXTURE1 );
-				state.bindTexture( gl.TEXTURE_2D, tempTexture );
-				gl.copyTexImage2D( gl.TEXTURE_2D, 0, gl.RGB, screenPositionPixels.x, screenPositionPixels.y, 16, 16, 0 );
-
-
-				// render pink quad
-
-				gl.uniform1i( uniforms.renderType, 0 );
-				gl.uniform2f( uniforms.scale, scale.x, scale.y );
-				gl.uniform3f( uniforms.screenPosition, screenPosition.x, screenPosition.y, screenPosition.z );
-
-				state.disable( gl.BLEND );
-				state.enable( gl.DEPTH_TEST );
-
-				gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 );
-
-
-				// copy result to occlusionMap
-
-				state.activeTexture( gl.TEXTURE0 );
-				state.bindTexture( gl.TEXTURE_2D, occlusionTexture );
-				gl.copyTexImage2D( gl.TEXTURE_2D, 0, gl.RGBA, screenPositionPixels.x, screenPositionPixels.y, 16, 16, 0 );
-
-
-				// restore graphics
-
-				gl.uniform1i( uniforms.renderType, 1 );
-				state.disable( gl.DEPTH_TEST );
-
-				state.activeTexture( gl.TEXTURE1 );
-				state.bindTexture( gl.TEXTURE_2D, tempTexture );
-				gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 );
-
-
-				// update object positions
-
-				flare.positionScreen.copy( screenPosition );
-
-				if ( flare.customUpdateCallback ) {
-
-					flare.customUpdateCallback( flare );
-
-				} else {
-
-					flare.updateLensFlares();
-
-				}
-
-				// render flares
-
-				gl.uniform1i( uniforms.renderType, 2 );
-				state.enable( gl.BLEND );
-
-				for ( var j = 0, jl = flare.lensFlares.length; j < jl; j ++ ) {
-
-					var sprite = flare.lensFlares[ j ];
-
-					if ( sprite.opacity > 0.001 && sprite.scale > 0.001 ) {
-
-						screenPosition.x = sprite.x;
-						screenPosition.y = sprite.y;
-						screenPosition.z = sprite.z;
-
-						size = sprite.size * sprite.scale / viewport.w;
-
-						scale.x = size * invAspect;
-						scale.y = size;
-
-						gl.uniform3f( uniforms.screenPosition, screenPosition.x, screenPosition.y, screenPosition.z );
-						gl.uniform2f( uniforms.scale, scale.x, scale.y );
-						gl.uniform1f( uniforms.rotation, sprite.rotation );
-
-						gl.uniform1f( uniforms.opacity, sprite.opacity );
-						gl.uniform3f( uniforms.color, sprite.color.r, sprite.color.g, sprite.color.b );
-
-						state.setBlending( sprite.blending, sprite.blendEquation, sprite.blendSrc, sprite.blendDst );
-
-						textures.setTexture2D( sprite.texture, 1 );
-
-						gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 );
-
-					}
-
-				}
-
-			}
-
-		}
-
-		// restore gl
-
-		state.enable( gl.CULL_FACE );
-		state.enable( gl.DEPTH_TEST );
-		state.buffers.depth.setMask( true );
-
-		state.reset();
-
-	};
-
-	function createProgram( shader ) {
-
-		var program = gl.createProgram();
-
-		var fragmentShader = gl.createShader( gl.FRAGMENT_SHADER );
-		var vertexShader = gl.createShader( gl.VERTEX_SHADER );
-
-		var prefix = 'precision ' + capabilities.precision + ' float;\n';
-
-		gl.shaderSource( fragmentShader, prefix + shader.fragmentShader );
-		gl.shaderSource( vertexShader, prefix + shader.vertexShader );
-
-		gl.compileShader( fragmentShader );
-		gl.compileShader( vertexShader );
-
-		gl.attachShader( program, fragmentShader );
-		gl.attachShader( program, vertexShader );
-
-		gl.linkProgram( program );
-
-		return program;
-
-	}
-
-}
-
-/**
- * @author mrdoob / http://mrdoob.com/
- */
-
-function CanvasTexture( canvas, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy ) {
-
-	Texture.call( this, canvas, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy );
-
-	this.needsUpdate = true;
-
-}
-
-CanvasTexture.prototype = Object.create( Texture.prototype );
-CanvasTexture.prototype.constructor = CanvasTexture;
-
-/**
- * @author mikael emtinger / http://gomo.se/
- * @author alteredq / http://alteredqualia.com/
- */
-
-function WebGLSpriteRenderer( renderer, gl, state, textures, capabilities ) {
-
-	var vertexBuffer, elementBuffer;
-	var program, attributes, uniforms;
-
-	var texture;
-
-	// decompose matrixWorld
-
-	var spritePosition = new Vector3();
-	var spriteRotation = new Quaternion();
-	var spriteScale = new Vector3();
-
-	function init() {
-
-		var vertices = new Float32Array( [
-			- 0.5, - 0.5, 0, 0,
-			  0.5, - 0.5, 1, 0,
-			  0.5, 0.5, 1, 1,
-			- 0.5, 0.5, 0, 1
-		] );
-
-		var faces = new Uint16Array( [
-			0, 1, 2,
-			0, 2, 3
-		] );
-
-		vertexBuffer = gl.createBuffer();
-		elementBuffer = gl.createBuffer();
-
-		gl.bindBuffer( gl.ARRAY_BUFFER, vertexBuffer );
-		gl.bufferData( gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW );
-
-		gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, elementBuffer );
-		gl.bufferData( gl.ELEMENT_ARRAY_BUFFER, faces, gl.STATIC_DRAW );
-
-		program = createProgram();
-
-		attributes = {
-			position: gl.getAttribLocation( program, 'position' ),
-			uv: gl.getAttribLocation( program, 'uv' )
-		};
-
-		uniforms = {
-			uvOffset: gl.getUniformLocation( program, 'uvOffset' ),
-			uvScale: gl.getUniformLocation( program, 'uvScale' ),
-
-			rotation: gl.getUniformLocation( program, 'rotation' ),
-			scale: gl.getUniformLocation( program, 'scale' ),
-
-			color: gl.getUniformLocation( program, 'color' ),
-			map: gl.getUniformLocation( program, 'map' ),
-			opacity: gl.getUniformLocation( program, 'opacity' ),
-
-			modelViewMatrix: gl.getUniformLocation( program, 'modelViewMatrix' ),
-			projectionMatrix: gl.getUniformLocation( program, 'projectionMatrix' ),
-
-			fogType: gl.getUniformLocation( program, 'fogType' ),
-			fogDensity: gl.getUniformLocation( program, 'fogDensity' ),
-			fogNear: gl.getUniformLocation( program, 'fogNear' ),
-			fogFar: gl.getUniformLocation( program, 'fogFar' ),
-			fogColor: gl.getUniformLocation( program, 'fogColor' ),
-			fogDepth: gl.getUniformLocation( program, 'fogDepth' ),
-
-			alphaTest: gl.getUniformLocation( program, 'alphaTest' )
-		};
-
-		var canvas = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'canvas' );
-		canvas.width = 8;
-		canvas.height = 8;
-
-		var context = canvas.getContext( '2d' );
-		context.fillStyle = 'white';
-		context.fillRect( 0, 0, 8, 8 );
-
-		texture = new CanvasTexture( canvas );
-
-	}
-
-	this.render = function ( sprites, scene, camera ) {
-
-		if ( sprites.length === 0 ) return;
-
-		// setup gl
-
-		if ( program === undefined ) {
-
-			init();
-
-		}
-
-		state.useProgram( program );
-
-		state.initAttributes();
-		state.enableAttribute( attributes.position );
-		state.enableAttribute( attributes.uv );
-		state.disableUnusedAttributes();
-
-		state.disable( gl.CULL_FACE );
-		state.enable( gl.BLEND );
-
-		gl.bindBuffer( gl.ARRAY_BUFFER, vertexBuffer );
-		gl.vertexAttribPointer( attributes.position, 2, gl.FLOAT, false, 2 * 8, 0 );
-		gl.vertexAttribPointer( attributes.uv, 2, gl.FLOAT, false, 2 * 8, 8 );
-
-		gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, elementBuffer );
-
-		gl.uniformMatrix4fv( uniforms.projectionMatrix, false, camera.projectionMatrix.elements );
-
-		state.activeTexture( gl.TEXTURE0 );
-		gl.uniform1i( uniforms.map, 0 );
-
-		var oldFogType = 0;
-		var sceneFogType = 0;
-		var fog = scene.fog;
-
-		if ( fog ) {
-
-			gl.uniform3f( uniforms.fogColor, fog.color.r, fog.color.g, fog.color.b );
-
-			if ( fog.isFog ) {
-
-				gl.uniform1f( uniforms.fogNear, fog.near );
-				gl.uniform1f( uniforms.fogFar, fog.far );
-
-				gl.uniform1i( uniforms.fogType, 1 );
-				oldFogType = 1;
-				sceneFogType = 1;
-
-			} else if ( fog.isFogExp2 ) {
-
-				gl.uniform1f( uniforms.fogDensity, fog.density );
-
-				gl.uniform1i( uniforms.fogType, 2 );
-				oldFogType = 2;
-				sceneFogType = 2;
-
-			}
-
-		} else {
-
-			gl.uniform1i( uniforms.fogType, 0 );
-			oldFogType = 0;
-			sceneFogType = 0;
-
-		}
-
-
-		// update positions and sort
-
-		for ( var i = 0, l = sprites.length; i < l; i ++ ) {
-
-			var sprite = sprites[ i ];
-
-			sprite.modelViewMatrix.multiplyMatrices( camera.matrixWorldInverse, sprite.matrixWorld );
-			sprite.z = - sprite.modelViewMatrix.elements[ 14 ];
-
-		}
-
-		sprites.sort( painterSortStable );
-
-		// render all sprites
-
-		var scale = [];
-
-		for ( var i = 0, l = sprites.length; i < l; i ++ ) {
-
-			var sprite = sprites[ i ];
-			var material = sprite.material;
-
-			if ( material.visible === false ) continue;
-
-			sprite.onBeforeRender( renderer, scene, camera, undefined, material, undefined );
-
-			gl.uniform1f( uniforms.alphaTest, material.alphaTest );
-			gl.uniformMatrix4fv( uniforms.modelViewMatrix, false, sprite.modelViewMatrix.elements );
-
-			sprite.matrixWorld.decompose( spritePosition, spriteRotation, spriteScale );
-
-			scale[ 0 ] = spriteScale.x;
-			scale[ 1 ] = spriteScale.y;
-
-			var fogType = 0;
-
-			if ( scene.fog && material.fog ) {
-
-				fogType = sceneFogType;
-
-			}
-
-			if ( oldFogType !== fogType ) {
-
-				gl.uniform1i( uniforms.fogType, fogType );
-				oldFogType = fogType;
-
-			}
-
-			if ( material.map !== null ) {
-
-				gl.uniform2f( uniforms.uvOffset, material.map.offset.x, material.map.offset.y );
-				gl.uniform2f( uniforms.uvScale, material.map.repeat.x, material.map.repeat.y );
-
-			} else {
-
-				gl.uniform2f( uniforms.uvOffset, 0, 0 );
-				gl.uniform2f( uniforms.uvScale, 1, 1 );
-
-			}
-
-			gl.uniform1f( uniforms.opacity, material.opacity );
-			gl.uniform3f( uniforms.color, material.color.r, material.color.g, material.color.b );
-
-			gl.uniform1f( uniforms.rotation, material.rotation );
-			gl.uniform2fv( uniforms.scale, scale );
-
-			state.setBlending( material.blending, material.blendEquation, material.blendSrc, material.blendDst, material.blendEquationAlpha, material.blendSrcAlpha, material.blendDstAlpha, material.premultipliedAlpha );
-			state.buffers.depth.setTest( material.depthTest );
-			state.buffers.depth.setMask( material.depthWrite );
-			state.buffers.color.setMask( material.colorWrite );
-
-			textures.setTexture2D( material.map || texture, 0 );
-
-			gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0 );
-
-			sprite.onAfterRender( renderer, scene, camera, undefined, material, undefined );
-
-		}
-
-		// restore gl
-
-		state.enable( gl.CULL_FACE );
-
-		state.reset();
-
-	};
-
-	function createProgram() {
-
-		var program = gl.createProgram();
-
-		var vertexShader = gl.createShader( gl.VERTEX_SHADER );
-		var fragmentShader = gl.createShader( gl.FRAGMENT_SHADER );
-
-		gl.shaderSource( vertexShader, [
-
-			'precision ' + capabilities.precision + ' float;',
-
-			'#define SHADER_NAME ' + 'SpriteMaterial',
-
-			'uniform mat4 modelViewMatrix;',
-			'uniform mat4 projectionMatrix;',
-			'uniform float rotation;',
-			'uniform vec2 scale;',
-			'uniform vec2 uvOffset;',
-			'uniform vec2 uvScale;',
-
-			'attribute vec2 position;',
-			'attribute vec2 uv;',
-
-			'varying vec2 vUV;',
-			'varying float fogDepth;',
-
-			'void main() {',
-
-			'	vUV = uvOffset + uv * uvScale;',
-
-			'	vec2 alignedPosition = position * scale;',
-
-			'	vec2 rotatedPosition;',
-			'	rotatedPosition.x = cos( rotation ) * alignedPosition.x - sin( rotation ) * alignedPosition.y;',
-			'	rotatedPosition.y = sin( rotation ) * alignedPosition.x + cos( rotation ) * alignedPosition.y;',
-
-			'	vec4 mvPosition;',
-
-			'	mvPosition = modelViewMatrix * vec4( 0.0, 0.0, 0.0, 1.0 );',
-			'	mvPosition.xy += rotatedPosition;',
-
-			'	gl_Position = projectionMatrix * mvPosition;',
-
-			'	fogDepth = - mvPosition.z;',
-
-			'}'
-
-		].join( '\n' ) );
-
-		gl.shaderSource( fragmentShader, [
-
-			'precision ' + capabilities.precision + ' float;',
-
-			'#define SHADER_NAME ' + 'SpriteMaterial',
-
-			'uniform vec3 color;',
-			'uniform sampler2D map;',
-			'uniform float opacity;',
-
-			'uniform int fogType;',
-			'uniform vec3 fogColor;',
-			'uniform float fogDensity;',
-			'uniform float fogNear;',
-			'uniform float fogFar;',
-			'uniform float alphaTest;',
-
-			'varying vec2 vUV;',
-			'varying float fogDepth;',
-
-			'void main() {',
-
-			'	vec4 texture = texture2D( map, vUV );',
-
-			'	gl_FragColor = vec4( color * texture.xyz, texture.a * opacity );',
-
-			'	if ( gl_FragColor.a < alphaTest ) discard;',
-
-			'	if ( fogType > 0 ) {',
-
-			'		float fogFactor = 0.0;',
-
-			'		if ( fogType == 1 ) {',
-
-			'			fogFactor = smoothstep( fogNear, fogFar, fogDepth );',
-
-			'		} else {',
-
-			'			const float LOG2 = 1.442695;',
-			'			fogFactor = exp2( - fogDensity * fogDensity * fogDepth * fogDepth * LOG2 );',
-			'			fogFactor = 1.0 - clamp( fogFactor, 0.0, 1.0 );',
-
-			'		}',
-
-			'		gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );',
-
-			'	}',
-
-			'}'
-
-		].join( '\n' ) );
-
-		gl.compileShader( vertexShader );
-		gl.compileShader( fragmentShader );
-
-		gl.attachShader( program, vertexShader );
-		gl.attachShader( program, fragmentShader );
-
-		gl.linkProgram( program );
-
-		return program;
-
-	}
-
-	function painterSortStable( a, b ) {
-
-		if ( a.renderOrder !== b.renderOrder ) {
-
-			return a.renderOrder - b.renderOrder;
-
-		} else if ( a.z !== b.z ) {
-
-			return b.z - a.z;
-
-		} else {
-
-			return b.id - a.id;
-
-		}
-
-	}
-
-}
-
-/**
  * @author mrdoob / http://mrdoob.com/
  * @author alteredq / http://alteredqualia.com/
  */
@@ -7557,6 +6548,8 @@ function Material() {
 	this.clippingPlanes = null;
 	this.clipIntersection = false;
 	this.clipShadows = false;
+
+	this.shadowSide = null;
 
 	this.colorWrite = true;
 
@@ -7864,6 +6857,8 @@ Material.prototype = Object.assign( Object.create( EventDispatcher.prototype ), 
 		}
 
 		this.clippingPlanes = dstPlanes;
+
+		this.shadowSide = source.shadowSide;
 
 		return this;
 
@@ -8406,6 +7401,107 @@ Object.assign( Box3.prototype, {
 		return ( min <= plane.constant && max >= plane.constant );
 
 	},
+
+	intersectsTriangle: ( function () {
+
+		// triangle centered vertices
+		var v0 = new Vector3();
+		var v1 = new Vector3();
+		var v2 = new Vector3();
+
+		// triangle edge vectors
+		var f0 = new Vector3();
+		var f1 = new Vector3();
+		var f2 = new Vector3();
+
+		var testAxis = new Vector3();
+
+		var center = new Vector3();
+		var extents = new Vector3();
+
+		var triangleNormal = new Vector3();
+
+		function satForAxes( axes ) {
+
+			var i, j;
+
+			for ( i = 0, j = axes.length - 3; i <= j; i += 3 ) {
+
+				testAxis.fromArray( axes, i );
+				// project the aabb onto the seperating axis
+				var r = extents.x * Math.abs( testAxis.x ) + extents.y * Math.abs( testAxis.y ) + extents.z * Math.abs( testAxis.z );
+				// project all 3 vertices of the triangle onto the seperating axis
+				var p0 = v0.dot( testAxis );
+				var p1 = v1.dot( testAxis );
+				var p2 = v2.dot( testAxis );
+				// actual test, basically see if either of the most extreme of the triangle points intersects r
+				if ( Math.max( - Math.max( p0, p1, p2 ), Math.min( p0, p1, p2 ) ) > r ) {
+
+					// points of the projected triangle are outside the projected half-length of the aabb
+					// the axis is seperating and we can exit
+					return false;
+
+				}
+
+			}
+
+			return true;
+
+		}
+
+		return function intersectsTriangle( triangle ) {
+
+			if ( this.isEmpty() ) {
+
+				return false;
+
+			}
+
+			// compute box center and extents
+			this.getCenter( center );
+			extents.subVectors( this.max, center );
+
+			// translate triangle to aabb origin
+			v0.subVectors( triangle.a, center );
+			v1.subVectors( triangle.b, center );
+			v2.subVectors( triangle.c, center );
+
+			// compute edge vectors for triangle
+			f0.subVectors( v1, v0 );
+			f1.subVectors( v2, v1 );
+			f2.subVectors( v0, v2 );
+
+			// test against axes that are given by cross product combinations of the edges of the triangle and the edges of the aabb
+			// make an axis testing of each of the 3 sides of the aabb against each of the 3 sides of the triangle = 9 axis of separation
+			// axis_ij = u_i x f_j (u0, u1, u2 = face normals of aabb = x,y,z axes vectors since aabb is axis aligned)
+			var axes = [
+				0, - f0.z, f0.y, 0, - f1.z, f1.y, 0, - f2.z, f2.y,
+				f0.z, 0, - f0.x, f1.z, 0, - f1.x, f2.z, 0, - f2.x,
+				- f0.y, f0.x, 0, - f1.y, f1.x, 0, - f2.y, f2.x, 0
+			];
+			if ( ! satForAxes( axes ) ) {
+
+				return false;
+
+			}
+
+			// test 3 face normals from the aabb
+			axes = [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ];
+			if ( ! satForAxes( axes ) ) {
+
+				return false;
+
+			}
+
+			// finally testing the face normal of the triangle
+			// use already existing triangle edge vectors here
+			triangleNormal.crossVectors( f0, f1 );
+			axes = [ triangleNormal.x, triangleNormal.y, triangleNormal.z ];
+			return satForAxes( axes );
+
+		};
+
+	} )(),
 
 	clampPoint: function ( point, optionalTarget ) {
 
@@ -9162,6 +8258,8 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 
 		_materialCache = {};
 
+	var shadowSide = { 0: BackSide, 1: FrontSide, 2: DoubleSide };
+
 	var cubeDirections = [
 		new Vector3( 1, 0, 0 ), new Vector3( - 1, 0, 0 ), new Vector3( 0, 0, 1 ),
 		new Vector3( 0, 0, - 1 ), new Vector3( 0, 1, 0 ), new Vector3( 0, - 1, 0 )
@@ -9190,9 +8288,6 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 	this.needsUpdate = false;
 
 	this.type = PCFShadowMap;
-
-	this.renderReverseSided = true;
-	this.renderSingleSided = true;
 
 	this.render = function ( lights, scene, camera ) {
 
@@ -9507,22 +8602,7 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 		result.visible = material.visible;
 		result.wireframe = material.wireframe;
 
-		var side = material.side;
-
-		if ( scope.renderSingleSided && side == DoubleSide ) {
-
-			side = FrontSide;
-
-		}
-
-		if ( scope.renderReverseSided ) {
-
-			if ( side === FrontSide ) side = BackSide;
-			else if ( side === BackSide ) side = FrontSide;
-
-		}
-
-		result.side = side;
+		result.side = ( material.shadowSide != null ) ? material.shadowSide : shadowSide[ material.side ];
 
 		result.clipShadows = material.clipShadows;
 		result.clippingPlanes = material.clippingPlanes;
@@ -15873,6 +14953,12 @@ Object.assign( Triangle.prototype, {
 
 	},
 
+	intersectsBox: function ( box ) {
+
+		return box.intersectsTriangle( this );
+
+	},
+
 	closestPointToPoint: function () {
 
 		var plane = new Plane();
@@ -16616,115 +15702,6 @@ function WebGLRenderLists() {
  * @author mrdoob / http://mrdoob.com/
  */
 
-function absNumericalSort( a, b ) {
-
-	return Math.abs( b[ 1 ] ) - Math.abs( a[ 1 ] );
-
-}
-
-function WebGLMorphtargets( gl ) {
-
-	var influencesList = {};
-	var morphInfluences = new Float32Array( 8 );
-
-	function update( object, geometry, material, program ) {
-
-		var objectInfluences = object.morphTargetInfluences;
-
-		var length = objectInfluences.length;
-
-		var influences = influencesList[ geometry.id ];
-
-		if ( influences === undefined ) {
-
-			// initialise list
-
-			influences = [];
-
-			for ( var i = 0; i < length; i ++ ) {
-
-				influences[ i ] = [ i, 0 ];
-
-			}
-
-			influencesList[ geometry.id ] = influences;
-
-		}
-
-		var morphTargets = material.morphTargets && geometry.morphAttributes.position;
-		var morphNormals = material.morphNormals && geometry.morphAttributes.normal;
-
-		// Remove current morphAttributes
-
-		for ( var i = 0; i < length; i ++ ) {
-
-			var influence = influences[ i ];
-
-			if ( influence[ 1 ] !== 0 ) {
-
-				if ( morphTargets ) geometry.removeAttribute( 'morphTarget' + i );
-				if ( morphNormals ) geometry.removeAttribute( 'morphNormal' + i );
-
-			}
-
-		}
-
-		// Collect influences
-
-		for ( var i = 0; i < length; i ++ ) {
-
-			var influence = influences[ i ];
-
-			influence[ 0 ] = i;
-			influence[ 1 ] = objectInfluences[ i ];
-
-		}
-
-		influences.sort( absNumericalSort );
-
-		// Add morphAttributes
-
-		for ( var i = 0; i < 8; i ++ ) {
-
-			var influence = influences[ i ];
-
-			if ( influence ) {
-
-				var index = influence[ 0 ];
-				var value = influence[ 1 ];
-
-				if ( value ) {
-
-					if ( morphTargets ) geometry.addAttribute( 'morphTarget' + i, morphTargets[ index ] );
-					if ( morphNormals ) geometry.addAttribute( 'morphNormal' + i, morphNormals[ index ] );
-
-					morphInfluences[ i ] = value;
-					continue;
-
-				}
-
-			}
-
-			morphInfluences[ i ] = 0;
-
-		}
-
-		program.getUniforms().setValue( gl, 'morphTargetInfluences', morphInfluences );
-
-	}
-
-	return {
-
-		update: update
-
-	};
-
-}
-
-/**
- * @author mrdoob / http://mrdoob.com/
- */
-
 function WebGLIndexedBufferRenderer( gl, extensions, infoRender ) {
 
 	var mode;
@@ -17404,7 +16381,7 @@ function WebGLObjects( geometries, infoRender ) {
 
 	}
 
-	function clear() {
+	function dispose() {
 
 		updateList = {};
 
@@ -17413,7 +16390,7 @@ function WebGLObjects( geometries, infoRender ) {
 	return {
 
 		update: update,
-		clear: clear
+		dispose: dispose
 
 	};
 
@@ -17967,12 +16944,8 @@ function WebGLProgram( renderer, extensions, code, material, shader, parameters 
 	fragmentShader = parseIncludes( fragmentShader );
 	fragmentShader = replaceLightNums( fragmentShader, parameters );
 
-	if ( ! material.isShaderMaterial ) {
-
-		vertexShader = unrollLoops( vertexShader );
-		fragmentShader = unrollLoops( fragmentShader );
-
-	}
+	vertexShader = unrollLoops( vertexShader );
+	fragmentShader = unrollLoops( fragmentShader );
 
 	var vertexGlsl = prefixVertex + vertexShader;
 	var fragmentGlsl = prefixFragment + fragmentShader;
@@ -18443,7 +17416,7 @@ function WebGLPrograms( renderer, extensions, capabilities ) {
  * @author mrdoob / http://mrdoob.com/
  */
 
-function WebGLTextures( _gl, extensions, state, properties, capabilities, utils, infoMemory ) {
+function WebGLTextures( _gl, extensions, state, properties, capabilities, utils, infoMemory, infoRender ) {
 
 	var _isWebGL2 = ( typeof WebGL2RenderingContext !== 'undefined' && _gl instanceof WebGL2RenderingContext );
 	var _videoTextures = {};
@@ -18637,6 +17610,8 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 	function setTexture2D( texture, slot ) {
 
 		var textureProperties = properties.get( texture );
+
+		if ( texture.isVideoTexture ) updateVideoTexture( texture );
 
 		if ( texture.version > 0 && textureProperties.__version !== texture.version ) {
 
@@ -18848,12 +17823,6 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 			texture.addEventListener( 'dispose', onTextureDispose );
 
 			textureProperties.__webglTexture = _gl.createTexture();
-
-			if ( texture.isVideoTexture ) {
-
-				_videoTextures[ texture.id ] = texture;
-
-			}
 
 			infoMemory.textures ++;
 
@@ -19236,11 +18205,17 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 
 	}
 
-	function updateVideoTextures() {
+	function updateVideoTexture( texture ) {
 
-		for ( var id in _videoTextures ) {
+		var id = texture.id;
+		var frame = infoRender.frame;
 
-			_videoTextures[ id ].update();
+		// Check the last frame we updated the VideoTexture
+
+		if ( _videoTextures[ id ] !== frame ) {
+
+			_videoTextures[ id ] = frame;
+			texture.update();
 
 		}
 
@@ -19251,7 +18226,6 @@ function WebGLTextures( _gl, extensions, state, properties, capabilities, utils,
 	this.setTextureCubeDynamic = setTextureCubeDynamic;
 	this.setupRenderTarget = setupRenderTarget;
 	this.updateRenderTargetMipmap = updateRenderTargetMipmap;
-	this.updateVideoTextures = updateVideoTextures;
 
 }
 
@@ -19285,7 +18259,7 @@ function WebGLProperties() {
 
 	}
 
-	function clear() {
+	function dispose() {
 
 		properties = {};
 
@@ -19294,7 +18268,7 @@ function WebGLProperties() {
 	return {
 		get: get,
 		remove: remove,
-		clear: clear
+		dispose: dispose
 	};
 
 }
@@ -20359,465 +19333,6 @@ function WebGLCapabilities( gl, extensions, parameters ) {
 
 /**
  * @author mrdoob / http://mrdoob.com/
- * @author greggman / http://games.greggman.com/
- * @author zz85 / http://www.lab4games.net/zz85/blog
- * @author tschw
- */
-
-function PerspectiveCamera( fov, aspect, near, far ) {
-
-	Camera.call( this );
-
-	this.type = 'PerspectiveCamera';
-
-	this.fov = fov !== undefined ? fov : 50;
-	this.zoom = 1;
-
-	this.near = near !== undefined ? near : 0.1;
-	this.far = far !== undefined ? far : 2000;
-	this.focus = 10;
-
-	this.aspect = aspect !== undefined ? aspect : 1;
-	this.view = null;
-
-	this.filmGauge = 35;	// width of the film (default in millimeters)
-	this.filmOffset = 0;	// horizontal film offset (same unit as gauge)
-
-	this.updateProjectionMatrix();
-
-}
-
-PerspectiveCamera.prototype = Object.assign( Object.create( Camera.prototype ), {
-
-	constructor: PerspectiveCamera,
-
-	isPerspectiveCamera: true,
-
-	copy: function ( source, recursive ) {
-
-		Camera.prototype.copy.call( this, source, recursive );
-
-		this.fov = source.fov;
-		this.zoom = source.zoom;
-
-		this.near = source.near;
-		this.far = source.far;
-		this.focus = source.focus;
-
-		this.aspect = source.aspect;
-		this.view = source.view === null ? null : Object.assign( {}, source.view );
-
-		this.filmGauge = source.filmGauge;
-		this.filmOffset = source.filmOffset;
-
-		return this;
-
-	},
-
-	/**
-	 * Sets the FOV by focal length in respect to the current .filmGauge.
-	 *
-	 * The default film gauge is 35, so that the focal length can be specified for
-	 * a 35mm (full frame) camera.
-	 *
-	 * Values for focal length and film gauge must have the same unit.
-	 */
-	setFocalLength: function ( focalLength ) {
-
-		// see http://www.bobatkins.com/photography/technical/field_of_view.html
-		var vExtentSlope = 0.5 * this.getFilmHeight() / focalLength;
-
-		this.fov = _Math.RAD2DEG * 2 * Math.atan( vExtentSlope );
-		this.updateProjectionMatrix();
-
-	},
-
-	/**
-	 * Calculates the focal length from the current .fov and .filmGauge.
-	 */
-	getFocalLength: function () {
-
-		var vExtentSlope = Math.tan( _Math.DEG2RAD * 0.5 * this.fov );
-
-		return 0.5 * this.getFilmHeight() / vExtentSlope;
-
-	},
-
-	getEffectiveFOV: function () {
-
-		return _Math.RAD2DEG * 2 * Math.atan(
-			Math.tan( _Math.DEG2RAD * 0.5 * this.fov ) / this.zoom );
-
-	},
-
-	getFilmWidth: function () {
-
-		// film not completely covered in portrait format (aspect < 1)
-		return this.filmGauge * Math.min( this.aspect, 1 );
-
-	},
-
-	getFilmHeight: function () {
-
-		// film not completely covered in landscape format (aspect > 1)
-		return this.filmGauge / Math.max( this.aspect, 1 );
-
-	},
-
-	/**
-	 * Sets an offset in a larger frustum. This is useful for multi-window or
-	 * multi-monitor/multi-machine setups.
-	 *
-	 * For example, if you have 3x2 monitors and each monitor is 1920x1080 and
-	 * the monitors are in grid like this
-	 *
-	 *   +---+---+---+
-	 *   | A | B | C |
-	 *   +---+---+---+
-	 *   | D | E | F |
-	 *   +---+---+---+
-	 *
-	 * then for each monitor you would call it like this
-	 *
-	 *   var w = 1920;
-	 *   var h = 1080;
-	 *   var fullWidth = w * 3;
-	 *   var fullHeight = h * 2;
-	 *
-	 *   --A--
-	 *   camera.setOffset( fullWidth, fullHeight, w * 0, h * 0, w, h );
-	 *   --B--
-	 *   camera.setOffset( fullWidth, fullHeight, w * 1, h * 0, w, h );
-	 *   --C--
-	 *   camera.setOffset( fullWidth, fullHeight, w * 2, h * 0, w, h );
-	 *   --D--
-	 *   camera.setOffset( fullWidth, fullHeight, w * 0, h * 1, w, h );
-	 *   --E--
-	 *   camera.setOffset( fullWidth, fullHeight, w * 1, h * 1, w, h );
-	 *   --F--
-	 *   camera.setOffset( fullWidth, fullHeight, w * 2, h * 1, w, h );
-	 *
-	 *   Note there is no reason monitors have to be the same size or in a grid.
-	 */
-	setViewOffset: function ( fullWidth, fullHeight, x, y, width, height ) {
-
-		this.aspect = fullWidth / fullHeight;
-
-		if ( this.view === null ) {
-
-			this.view = {
-				enabled: true,
-				fullWidth: 1,
-				fullHeight: 1,
-				offsetX: 0,
-				offsetY: 0,
-				width: 1,
-				height: 1
-			};
-
-		}
-
-		this.view.enabled = true;
-		this.view.fullWidth = fullWidth;
-		this.view.fullHeight = fullHeight;
-		this.view.offsetX = x;
-		this.view.offsetY = y;
-		this.view.width = width;
-		this.view.height = height;
-
-		this.updateProjectionMatrix();
-
-	},
-
-	clearViewOffset: function () {
-
-		if ( this.view !== null ) {
-
-			this.view.enabled = false;
-
-		}
-
-		this.updateProjectionMatrix();
-
-	},
-
-	updateProjectionMatrix: function () {
-
-		var near = this.near,
-			top = near * Math.tan(
-				_Math.DEG2RAD * 0.5 * this.fov ) / this.zoom,
-			height = 2 * top,
-			width = this.aspect * height,
-			left = - 0.5 * width,
-			view = this.view;
-
-		if ( this.view !== null && this.view.enabled ) {
-
-			var fullWidth = view.fullWidth,
-				fullHeight = view.fullHeight;
-
-			left += view.offsetX * width / fullWidth;
-			top -= view.offsetY * height / fullHeight;
-			width *= view.width / fullWidth;
-			height *= view.height / fullHeight;
-
-		}
-
-		var skew = this.filmOffset;
-		if ( skew !== 0 ) left += near * skew / this.getFilmWidth();
-
-		this.projectionMatrix.makePerspective( left, left + width, top, top - height, near, this.far );
-
-	},
-
-	toJSON: function ( meta ) {
-
-		var data = Object3D.prototype.toJSON.call( this, meta );
-
-		data.object.fov = this.fov;
-		data.object.zoom = this.zoom;
-
-		data.object.near = this.near;
-		data.object.far = this.far;
-		data.object.focus = this.focus;
-
-		data.object.aspect = this.aspect;
-
-		if ( this.view !== null ) data.object.view = Object.assign( {}, this.view );
-
-		data.object.filmGauge = this.filmGauge;
-		data.object.filmOffset = this.filmOffset;
-
-		return data;
-
-	}
-
-} );
-
-/**
- * @author mrdoob / http://mrdoob.com/
- */
-
-function ArrayCamera( array ) {
-
-	PerspectiveCamera.call( this );
-
-	this.cameras = array || [];
-
-}
-
-ArrayCamera.prototype = Object.assign( Object.create( PerspectiveCamera.prototype ), {
-
-	constructor: ArrayCamera,
-
-	isArrayCamera: true
-
-} );
-
-/**
- * @author mrdoob / http://mrdoob.com/
- */
-
-function WebVRManager( renderer ) {
-
-	var scope = this;
-
-	var device = null;
-	var frameData = null;
-
-	var poseTarget = null;
-
-	if ( typeof window !== 'undefined' && 'VRFrameData' in window ) {
-
-		frameData = new window.VRFrameData();
-
-	}
-
-	var matrixWorldInverse = new Matrix4();
-
-	var cameraL = new PerspectiveCamera();
-	cameraL.bounds = new Vector4( 0.0, 0.0, 0.5, 1.0 );
-	cameraL.layers.enable( 1 );
-
-	var cameraR = new PerspectiveCamera();
-	cameraR.bounds = new Vector4( 0.5, 0.0, 0.5, 1.0 );
-	cameraR.layers.enable( 2 );
-
-	var cameraVR = new ArrayCamera( [ cameraL, cameraR ] );
-	cameraVR.layers.enable( 1 );
-	cameraVR.layers.enable( 2 );
-
-	//
-
-	var currentSize, currentPixelRatio;
-
-	function onVRDisplayPresentChange() {
-
-		if ( device !== null && device.isPresenting ) {
-
-			var eyeParameters = device.getEyeParameters( 'left' );
-			var renderWidth = eyeParameters.renderWidth;
-			var renderHeight = eyeParameters.renderHeight;
-
-			currentPixelRatio = renderer.getPixelRatio();
-			currentSize = renderer.getSize();
-
-			renderer.setDrawingBufferSize( renderWidth * 2, renderHeight, 1 );
-
-		} else if ( scope.enabled ) {
-
-			renderer.setDrawingBufferSize( currentSize.width, currentSize.height, currentPixelRatio );
-
-		}
-
-	}
-
-	if ( typeof window !== 'undefined' ) {
-
-		window.addEventListener( 'vrdisplaypresentchange', onVRDisplayPresentChange, false );
-
-	}
-
-	//
-
-	this.enabled = false;
-
-	this.getDevice = function () {
-
-		return device;
-
-	};
-
-	this.setDevice = function ( value ) {
-
-		if ( value !== undefined ) device = value;
-
-	};
-
-	this.setPoseTarget = function ( object ) {
-
-		if ( object !== undefined ) poseTarget = object;
-
-	};
-
-	this.getCamera = function ( camera ) {
-
-		if ( device === null ) return camera;
-
-		device.depthNear = camera.near;
-		device.depthFar = camera.far;
-
-		device.getFrameData( frameData );
-
-		//
-
-		var pose = frameData.pose;
-		var poseObject = poseTarget !== null ? poseTarget : camera;
-
-		if ( pose.position !== null ) {
-
-			poseObject.position.fromArray( pose.position );
-
-		} else {
-
-			poseObject.position.set( 0, 0, 0 );
-
-		}
-
-		if ( pose.orientation !== null ) {
-
-			poseObject.quaternion.fromArray( pose.orientation );
-
-		}
-
-		poseObject.updateMatrixWorld();
-
-		if ( device.isPresenting === false ) return camera;
-
-		//
-
-		cameraL.near = camera.near;
-		cameraR.near = camera.near;
-
-		cameraL.far = camera.far;
-		cameraR.far = camera.far;
-
-		cameraVR.matrixWorld.copy( camera.matrixWorld );
-		cameraVR.matrixWorldInverse.copy( camera.matrixWorldInverse );
-
-		cameraL.matrixWorldInverse.fromArray( frameData.leftViewMatrix );
-		cameraR.matrixWorldInverse.fromArray( frameData.rightViewMatrix );
-
-		var parent = poseObject.parent;
-
-		if ( parent !== null ) {
-
-			matrixWorldInverse.getInverse( parent.matrixWorld );
-
-			cameraL.matrixWorldInverse.multiply( matrixWorldInverse );
-			cameraR.matrixWorldInverse.multiply( matrixWorldInverse );
-
-		}
-
-		// envMap and Mirror needs camera.matrixWorld
-
-		cameraL.matrixWorld.getInverse( cameraL.matrixWorldInverse );
-		cameraR.matrixWorld.getInverse( cameraR.matrixWorldInverse );
-
-		cameraL.projectionMatrix.fromArray( frameData.leftProjectionMatrix );
-		cameraR.projectionMatrix.fromArray( frameData.rightProjectionMatrix );
-
-		// HACK @mrdoob
-		// https://github.com/w3c/webvr/issues/203
-
-		cameraVR.projectionMatrix.copy( cameraL.projectionMatrix );
-
-		//
-
-		var layers = device.getLayers();
-
-		if ( layers.length ) {
-
-			var layer = layers[ 0 ];
-
-			if ( layer.leftBounds !== null && layer.leftBounds.length === 4 ) {
-
-				cameraL.bounds.fromArray( layer.leftBounds );
-
-			}
-
-			if ( layer.rightBounds !== null && layer.rightBounds.length === 4 ) {
-
-				cameraR.bounds.fromArray( layer.rightBounds );
-
-			}
-
-		}
-
-		return cameraVR;
-
-	};
-
-	this.submitFrame = function () {
-
-		if ( device && device.isPresenting ) device.submitFrame();
-
-	};
-
-	this.dispose = function () {
-
-		if ( typeof window !== 'undefined' ) {
-
-			window.removeEventListener( 'vrdisplaypresentchange', onVRDisplayPresentChange );
-
-		}
-
-	};
-
-}
-
-/**
- * @author mrdoob / http://mrdoob.com/
  */
 
 function WebGLExtensions( gl ) {
@@ -21190,6 +19705,10 @@ function WebGLUtils( gl, extensions ) {
 
 }
 
+// import { DataTexture } from '../textures/DataTexture.js';
+// import { WebGLSpriteRenderer } from './webgl/WebGLSpriteRenderer.js';
+// import { WebGLMorphtargets } from './webgl/WebGLMorphtargets.js';
+// import { WebVRManager } from './webvr/WebVRManager.js';
 /**
  * @author supereggbert / http://www.paulbrunt.co.uk/
  * @author mrdoob / http://mrdoob.com/
@@ -21221,7 +19740,6 @@ function WebGLRenderer( parameters ) {
 	var currentRenderList = null;
 
 	var spritesArray = [];
-	var flaresArray = [];
 
 	// public properties
 
@@ -21262,8 +19780,8 @@ function WebGLRenderer( parameters ) {
 
 	// morphs
 
-	this.maxMorphTargets = 8;
-	this.maxMorphNormals = 4;
+	// this.maxMorphTargets = 8;
+	// this.maxMorphNormals = 4;
 
 	// internal properties
 
@@ -21337,9 +19855,21 @@ function WebGLRenderer( parameters ) {
 
 		render: _infoRender,
 		memory: _infoMemory,
-		programs: null
+		programs: null,
+		autoReset: true,
+		reset: resetInfo
 
 	};
+
+	function resetInfo() {
+
+		_infoRender.frame ++;
+		_infoRender.calls = 0;
+		_infoRender.vertices = 0;
+		_infoRender.faces = 0;
+		_infoRender.points = 0;
+
+	}
 
 	function getTargetPixelRatio() {
 
@@ -21406,8 +19936,8 @@ function WebGLRenderer( parameters ) {
 	var properties, textures, attributes, geometries, objects, lights;
 	var programCache, renderLists;
 
-	var background, morphtargets, bufferRenderer, indexedBufferRenderer;
-	var flareRenderer, spriteRenderer;
+	var background, /*morphtargets,*/ bufferRenderer, indexedBufferRenderer;
+	// var spriteRenderer;
 
 	var utils;
 
@@ -21432,11 +19962,11 @@ function WebGLRenderer( parameters ) {
 		state.viewport( _currentViewport.copy( _viewport ).multiplyScalar( _pixelRatio ) );
 
 		properties = new WebGLProperties();
-		textures = new WebGLTextures( _gl, extensions, state, properties, capabilities, utils, _infoMemory );
+		textures = new WebGLTextures( _gl, extensions, state, properties, capabilities, utils, _infoMemory, _infoRender );
 		attributes = new WebGLAttributes( _gl );
 		geometries = new WebGLGeometries( _gl, attributes, _infoMemory );
 		objects = new WebGLObjects( geometries, _infoRender );
-		morphtargets = new WebGLMorphtargets( _gl );
+		// morphtargets = new WebGLMorphtargets( _gl );
 		programCache = new WebGLPrograms( _this, extensions, capabilities );
 		lights = new WebGLLights();
 		renderLists = new WebGLRenderLists();
@@ -21446,8 +19976,7 @@ function WebGLRenderer( parameters ) {
 		bufferRenderer = new WebGLBufferRenderer( _gl, extensions, _infoRender );
 		indexedBufferRenderer = new WebGLIndexedBufferRenderer( _gl, extensions, _infoRender );
 
-		flareRenderer = new WebGLFlareRenderer( _this, _gl, state, textures, capabilities );
-		spriteRenderer = new WebGLSpriteRenderer( _this, _gl, state, textures, capabilities );
+		// spriteRenderer = new WebGLSpriteRenderer( _this, _gl, state, textures, capabilities );
 
 		_this.info.programs = programCache.programs;
 
@@ -21461,13 +19990,13 @@ function WebGLRenderer( parameters ) {
 	}
 
 	initGLContext();
-
+	/*
 	// vr
 
 	var vr = new WebVRManager( _this );
 
 	this.vr = vr;
-
+	*/
 	// shadow map
 
 	var shadowMap = new WebGLShadowMap( _this, objects, capabilities.maxTextureSize );
@@ -21528,15 +20057,16 @@ function WebGLRenderer( parameters ) {
 	};
 
 	this.setSize = function ( width, height, updateStyle ) {
-
+		/*
 		var device = vr.getDevice();
-
+		
 		if ( device && device.isPresenting ) {
 
 			console.warn( 'THREE.WebGLRenderer: Can\'t change size while VR device is presenting.' );
 			return;
 
 		}
+		*/
 
 		_width = width;
 		_height = height;
@@ -21575,6 +20105,12 @@ function WebGLRenderer( parameters ) {
 		_canvas.height = height * pixelRatio;
 
 		this.setViewport( 0, 0, width, height );
+
+	};
+
+	this.getCurrentViewport = function () {
+
+		return _currentViewport;
 
 	};
 
@@ -21669,9 +20205,11 @@ function WebGLRenderer( parameters ) {
 		_canvas.removeEventListener( 'webglcontextrestored', onContextRestore, false );
 
 		renderLists.dispose();
-
+		properties.dispose();
+		objects.dispose();
+		/*
 		vr.dispose();
-
+		*/
 	};
 
 	// Events
@@ -21855,13 +20393,13 @@ function WebGLRenderer( parameters ) {
 
 		}
 
-		if ( object.morphTargetInfluences ) {
+		// if ( object.morphTargetInfluences ) {
 
-			morphtargets.update( object, geometry, material, program );
+		// 	morphtargets.update( object, geometry, material, program );
 
-			updateBuffers = true;
+		// 	updateBuffers = true;
 
-		}
+		// }
 
 		//
 
@@ -21902,7 +20440,7 @@ function WebGLRenderer( parameters ) {
 
 		//
 
-		var dataCount = 0;
+		var dataCount = Infinity;
 
 		if ( index !== null ) {
 
@@ -22194,15 +20732,15 @@ function WebGLRenderer( parameters ) {
 	function start() {
 
 		if ( isAnimating ) return;
-
+		/*
 		var device = vr.getDevice();
 
 		if ( device && device.isPresenting ) {
 
 			device.requestAnimationFrame( loop );
 
-		} else {
-
+		} else */ {
+		
 			window.requestAnimationFrame( loop );
 
 		}
@@ -22215,13 +20753,14 @@ function WebGLRenderer( parameters ) {
 
 		if ( onAnimationFrame !== null ) onAnimationFrame( time );
 
+		/*
 		var device = vr.getDevice();
 
 		if ( device && device.isPresenting ) {
 
 			device.requestAnimationFrame( loop );
 
-		} else {
+		} else */ {
 
 			window.requestAnimationFrame( loop );
 
@@ -22262,12 +20801,14 @@ function WebGLRenderer( parameters ) {
 		// update camera matrices and frustum
 
 		if ( camera.parent === null ) camera.updateMatrixWorld();
-
+		/*
 		if ( vr.enabled ) {
 
 			camera = vr.getCamera( camera );
 
 		}
+		*/
+		scene.onBeforeRender( _this, scene, camera, renderTarget );
 
 		_projScreenMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
 		_frustum.setFromMatrix( _projScreenMatrix );
@@ -22276,7 +20817,6 @@ function WebGLRenderer( parameters ) {
 		shadowsArray.length = 0;
 
 		spritesArray.length = 0;
-		flaresArray.length = 0;
 
 		_localClippingEnabled = this.localClippingEnabled;
 		_clippingEnabled = _clipping.init( this.clippingPlanes, _localClippingEnabled, camera );
@@ -22294,10 +20834,6 @@ function WebGLRenderer( parameters ) {
 
 		//
 
-		textures.updateVideoTextures();
-
-		//
-
 		if ( _clippingEnabled ) _clipping.beginShadows();
 
 		shadowMap.render( shadowsArray, scene, camera );
@@ -22308,11 +20844,7 @@ function WebGLRenderer( parameters ) {
 
 		//
 
-		_infoRender.frame ++;
-		_infoRender.calls = 0;
-		_infoRender.vertices = 0;
-		_infoRender.faces = 0;
-		_infoRender.points = 0;
+		if ( this.info.autoReset ) this.info.reset();
 
 		if ( renderTarget === undefined ) {
 
@@ -22352,8 +20884,7 @@ function WebGLRenderer( parameters ) {
 
 		// custom renderers
 
-		spriteRenderer.render( spritesArray, scene, camera );
-		flareRenderer.render( flaresArray, scene, camera, _currentViewport );
+		// spriteRenderer.render( spritesArray, scene, camera );
 
 		// Generate mipmap if we're using any kind of mipmap filtering
 
@@ -22371,13 +20902,17 @@ function WebGLRenderer( parameters ) {
 
 		state.setPolygonOffset( false );
 
+		scene.onAfterRender( _this, scene, camera );
+		/*
 		if ( vr.enabled ) {
 
 			vr.submitFrame();
 
 		}
-
+		*/
 		// _gl.finish();
+
+		currentRenderList = null;
 
 	};
 
@@ -22462,10 +20997,6 @@ function WebGLRenderer( parameters ) {
 
 				}
 
-			} else if ( object.isLensFlare ) {
-
-				flaresArray.push( object );
-
 			} else if ( object.isImmediateRenderObject ) {
 
 				if ( sortObjects ) {
@@ -22479,11 +21010,13 @@ function WebGLRenderer( parameters ) {
 
 			} else if ( object.isMesh || object.isLine || object.isPoints ) {
 
+				/*
 				if ( object.isSkinnedMesh ) {
 
 					object.skeleton.update();
 
 				}
+				*/
 
 				if ( ! object.frustumCulled || _frustum.intersectsObject( object ) ) {
 
@@ -22696,6 +21229,7 @@ function WebGLRenderer( parameters ) {
 
 		var programAttributes = program.getAttributes();
 
+		/*
 		if ( material.morphTargets ) {
 
 			material.numSupportedMorphTargets = 0;
@@ -22727,6 +21261,7 @@ function WebGLRenderer( parameters ) {
 			}
 
 		}
+		*/
 
 		var uniforms = materialProperties.shader.uniforms;
 
@@ -22913,10 +21448,11 @@ function WebGLRenderer( parameters ) {
 
 		}
 
+		/*
 		// skinning uniforms must be set even if material didn't change
 		// auto-setting of texture unit for bone texture must go before other textures
 		// not sure why, but otherwise weird things happen
-
+		
 		if ( material.skinning ) {
 
 			p_uniforms.setOptional( _gl, object, 'bindMatrix' );
@@ -22967,6 +21503,7 @@ function WebGLRenderer( parameters ) {
 			}
 
 		}
+		*/
 
 		if ( refreshMaterial ) {
 
@@ -23743,6 +22280,18 @@ function WebGLRenderer( parameters ) {
 		}
 
 		return true;
+
+	};
+
+	this.copyFramebufferToTexture = function ( position, texture, level ) {
+
+		var width = texture.image.width;
+		var height = texture.image.height;
+		var internalFormat = utils.convert( texture.format );
+
+		this.setTexture2D( texture, 0 );
+
+		_gl.copyTexImage2D( _gl.TEXTURE_2D, level || 0, internalFormat, position.x, position.y, width, height, 0 );
 
 	};
 
@@ -27201,6 +25750,243 @@ AmbientLight.prototype = Object.assign( Object.create( Light.prototype ), {
 	constructor: AmbientLight,
 
 	isAmbientLight: true
+
+} );
+
+/**
+ * @author mrdoob / http://mrdoob.com/
+ * @author greggman / http://games.greggman.com/
+ * @author zz85 / http://www.lab4games.net/zz85/blog
+ * @author tschw
+ */
+
+function PerspectiveCamera( fov, aspect, near, far ) {
+
+	Camera.call( this );
+
+	this.type = 'PerspectiveCamera';
+
+	this.fov = fov !== undefined ? fov : 50;
+	this.zoom = 1;
+
+	this.near = near !== undefined ? near : 0.1;
+	this.far = far !== undefined ? far : 2000;
+	this.focus = 10;
+
+	this.aspect = aspect !== undefined ? aspect : 1;
+	this.view = null;
+
+	this.filmGauge = 35;	// width of the film (default in millimeters)
+	this.filmOffset = 0;	// horizontal film offset (same unit as gauge)
+
+	this.updateProjectionMatrix();
+
+}
+
+PerspectiveCamera.prototype = Object.assign( Object.create( Camera.prototype ), {
+
+	constructor: PerspectiveCamera,
+
+	isPerspectiveCamera: true,
+
+	copy: function ( source, recursive ) {
+
+		Camera.prototype.copy.call( this, source, recursive );
+
+		this.fov = source.fov;
+		this.zoom = source.zoom;
+
+		this.near = source.near;
+		this.far = source.far;
+		this.focus = source.focus;
+
+		this.aspect = source.aspect;
+		this.view = source.view === null ? null : Object.assign( {}, source.view );
+
+		this.filmGauge = source.filmGauge;
+		this.filmOffset = source.filmOffset;
+
+		return this;
+
+	},
+
+	/**
+	 * Sets the FOV by focal length in respect to the current .filmGauge.
+	 *
+	 * The default film gauge is 35, so that the focal length can be specified for
+	 * a 35mm (full frame) camera.
+	 *
+	 * Values for focal length and film gauge must have the same unit.
+	 */
+	setFocalLength: function ( focalLength ) {
+
+		// see http://www.bobatkins.com/photography/technical/field_of_view.html
+		var vExtentSlope = 0.5 * this.getFilmHeight() / focalLength;
+
+		this.fov = _Math.RAD2DEG * 2 * Math.atan( vExtentSlope );
+		this.updateProjectionMatrix();
+
+	},
+
+	/**
+	 * Calculates the focal length from the current .fov and .filmGauge.
+	 */
+	getFocalLength: function () {
+
+		var vExtentSlope = Math.tan( _Math.DEG2RAD * 0.5 * this.fov );
+
+		return 0.5 * this.getFilmHeight() / vExtentSlope;
+
+	},
+
+	getEffectiveFOV: function () {
+
+		return _Math.RAD2DEG * 2 * Math.atan(
+			Math.tan( _Math.DEG2RAD * 0.5 * this.fov ) / this.zoom );
+
+	},
+
+	getFilmWidth: function () {
+
+		// film not completely covered in portrait format (aspect < 1)
+		return this.filmGauge * Math.min( this.aspect, 1 );
+
+	},
+
+	getFilmHeight: function () {
+
+		// film not completely covered in landscape format (aspect > 1)
+		return this.filmGauge / Math.max( this.aspect, 1 );
+
+	},
+
+	/**
+	 * Sets an offset in a larger frustum. This is useful for multi-window or
+	 * multi-monitor/multi-machine setups.
+	 *
+	 * For example, if you have 3x2 monitors and each monitor is 1920x1080 and
+	 * the monitors are in grid like this
+	 *
+	 *   +---+---+---+
+	 *   | A | B | C |
+	 *   +---+---+---+
+	 *   | D | E | F |
+	 *   +---+---+---+
+	 *
+	 * then for each monitor you would call it like this
+	 *
+	 *   var w = 1920;
+	 *   var h = 1080;
+	 *   var fullWidth = w * 3;
+	 *   var fullHeight = h * 2;
+	 *
+	 *   --A--
+	 *   camera.setOffset( fullWidth, fullHeight, w * 0, h * 0, w, h );
+	 *   --B--
+	 *   camera.setOffset( fullWidth, fullHeight, w * 1, h * 0, w, h );
+	 *   --C--
+	 *   camera.setOffset( fullWidth, fullHeight, w * 2, h * 0, w, h );
+	 *   --D--
+	 *   camera.setOffset( fullWidth, fullHeight, w * 0, h * 1, w, h );
+	 *   --E--
+	 *   camera.setOffset( fullWidth, fullHeight, w * 1, h * 1, w, h );
+	 *   --F--
+	 *   camera.setOffset( fullWidth, fullHeight, w * 2, h * 1, w, h );
+	 *
+	 *   Note there is no reason monitors have to be the same size or in a grid.
+	 */
+	setViewOffset: function ( fullWidth, fullHeight, x, y, width, height ) {
+
+		this.aspect = fullWidth / fullHeight;
+
+		if ( this.view === null ) {
+
+			this.view = {
+				enabled: true,
+				fullWidth: 1,
+				fullHeight: 1,
+				offsetX: 0,
+				offsetY: 0,
+				width: 1,
+				height: 1
+			};
+
+		}
+
+		this.view.enabled = true;
+		this.view.fullWidth = fullWidth;
+		this.view.fullHeight = fullHeight;
+		this.view.offsetX = x;
+		this.view.offsetY = y;
+		this.view.width = width;
+		this.view.height = height;
+
+		this.updateProjectionMatrix();
+
+	},
+
+	clearViewOffset: function () {
+
+		if ( this.view !== null ) {
+
+			this.view.enabled = false;
+
+		}
+
+		this.updateProjectionMatrix();
+
+	},
+
+	updateProjectionMatrix: function () {
+
+		var near = this.near,
+			top = near * Math.tan(
+				_Math.DEG2RAD * 0.5 * this.fov ) / this.zoom,
+			height = 2 * top,
+			width = this.aspect * height,
+			left = - 0.5 * width,
+			view = this.view;
+
+		if ( this.view !== null && this.view.enabled ) {
+
+			var fullWidth = view.fullWidth,
+				fullHeight = view.fullHeight;
+
+			left += view.offsetX * width / fullWidth;
+			top -= view.offsetY * height / fullHeight;
+			width *= view.width / fullWidth;
+			height *= view.height / fullHeight;
+
+		}
+
+		var skew = this.filmOffset;
+		if ( skew !== 0 ) left += near * skew / this.getFilmWidth();
+
+		this.projectionMatrix.makePerspective( left, left + width, top, top - height, near, this.far );
+
+	},
+
+	toJSON: function ( meta ) {
+
+		var data = Object3D.prototype.toJSON.call( this, meta );
+
+		data.object.fov = this.fov;
+		data.object.zoom = this.zoom;
+
+		data.object.near = this.near;
+		data.object.far = this.far;
+		data.object.focus = this.focus;
+
+		data.object.aspect = this.aspect;
+
+		if ( this.view !== null ) data.object.view = Object.assign( {}, this.view );
+
+		data.object.filmGauge = this.filmGauge;
+		data.object.filmOffset = this.filmOffset;
+
+		return data;
+
+	}
 
 } );
 
