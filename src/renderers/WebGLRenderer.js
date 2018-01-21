@@ -6,7 +6,6 @@ import { WebGLUniforms } from './webgl/WebGLUniforms.js';
 import { UniformsLib } from './shaders/UniformsLib.js';
 import { UniformsUtils } from './shaders/UniformsUtils.js';
 import { ShaderLib } from './shaders/ShaderLib.js';
-import { WebGLFlareRenderer } from './webgl/WebGLFlareRenderer.js';
 import { WebGLSpriteRenderer } from './webgl/WebGLSpriteRenderer.js';
 import { WebGLShadowMap } from './webgl/WebGLShadowMap.js';
 import { WebGLAttributes } from './webgl/WebGLAttributes.js';
@@ -62,7 +61,6 @@ function WebGLRenderer( parameters ) {
 	var currentRenderList = null;
 
 	var spritesArray = [];
-	var flaresArray = [];
 
 	// public properties
 
@@ -178,9 +176,21 @@ function WebGLRenderer( parameters ) {
 
 		render: _infoRender,
 		memory: _infoMemory,
-		programs: null
+		programs: null,
+		autoReset: true,
+		reset: resetInfo
 
 	};
+
+	function resetInfo() {
+
+		_infoRender.frame ++;
+		_infoRender.calls = 0;
+		_infoRender.vertices = 0;
+		_infoRender.faces = 0;
+		_infoRender.points = 0;
+
+	}
 
 	function getTargetPixelRatio() {
 
@@ -248,7 +258,7 @@ function WebGLRenderer( parameters ) {
 	var programCache, renderLists;
 
 	var background, morphtargets, bufferRenderer, indexedBufferRenderer;
-	var flareRenderer, spriteRenderer;
+	var spriteRenderer;
 
 	var utils;
 
@@ -273,7 +283,7 @@ function WebGLRenderer( parameters ) {
 		state.viewport( _currentViewport.copy( _viewport ).multiplyScalar( _pixelRatio ) );
 
 		properties = new WebGLProperties();
-		textures = new WebGLTextures( _gl, extensions, state, properties, capabilities, utils, _infoMemory );
+		textures = new WebGLTextures( _gl, extensions, state, properties, capabilities, utils, _infoMemory, _infoRender );
 		attributes = new WebGLAttributes( _gl );
 		geometries = new WebGLGeometries( _gl, attributes, _infoMemory );
 		objects = new WebGLObjects( geometries, _infoRender );
@@ -287,7 +297,6 @@ function WebGLRenderer( parameters ) {
 		bufferRenderer = new WebGLBufferRenderer( _gl, extensions, _infoRender );
 		indexedBufferRenderer = new WebGLIndexedBufferRenderer( _gl, extensions, _infoRender );
 
-		flareRenderer = new WebGLFlareRenderer( _this, _gl, state, textures, capabilities );
 		spriteRenderer = new WebGLSpriteRenderer( _this, _gl, state, textures, capabilities );
 
 		_this.info.programs = programCache.programs;
@@ -419,6 +428,12 @@ function WebGLRenderer( parameters ) {
 
 	};
 
+	this.getCurrentViewport = function () {
+
+		return _currentViewport;
+
+	};
+
 	this.setViewport = function ( x, y, width, height ) {
 
 		_viewport.set( x, _height - y - height, width, height );
@@ -510,6 +525,8 @@ function WebGLRenderer( parameters ) {
 		_canvas.removeEventListener( 'webglcontextrestored', onContextRestore, false );
 
 		renderLists.dispose();
+		properties.dispose();
+		objects.dispose();
 
 		vr.dispose();
 
@@ -743,7 +760,7 @@ function WebGLRenderer( parameters ) {
 
 		//
 
-		var dataCount = 0;
+		var dataCount = Infinity;
 
 		if ( index !== null ) {
 
@@ -1110,6 +1127,8 @@ function WebGLRenderer( parameters ) {
 
 		}
 
+		scene.onBeforeRender( _this, scene, camera, renderTarget );
+
 		_projScreenMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
 		_frustum.setFromMatrix( _projScreenMatrix );
 
@@ -1117,7 +1136,6 @@ function WebGLRenderer( parameters ) {
 		shadowsArray.length = 0;
 
 		spritesArray.length = 0;
-		flaresArray.length = 0;
 
 		_localClippingEnabled = this.localClippingEnabled;
 		_clippingEnabled = _clipping.init( this.clippingPlanes, _localClippingEnabled, camera );
@@ -1135,10 +1153,6 @@ function WebGLRenderer( parameters ) {
 
 		//
 
-		textures.updateVideoTextures();
-
-		//
-
 		if ( _clippingEnabled ) _clipping.beginShadows();
 
 		shadowMap.render( shadowsArray, scene, camera );
@@ -1149,11 +1163,7 @@ function WebGLRenderer( parameters ) {
 
 		//
 
-		_infoRender.frame ++;
-		_infoRender.calls = 0;
-		_infoRender.vertices = 0;
-		_infoRender.faces = 0;
-		_infoRender.points = 0;
+		if ( this.info.autoReset ) this.info.reset();
 
 		if ( renderTarget === undefined ) {
 
@@ -1194,7 +1204,6 @@ function WebGLRenderer( parameters ) {
 		// custom renderers
 
 		spriteRenderer.render( spritesArray, scene, camera );
-		flareRenderer.render( flaresArray, scene, camera, _currentViewport );
 
 		// Generate mipmap if we're using any kind of mipmap filtering
 
@@ -1212,6 +1221,8 @@ function WebGLRenderer( parameters ) {
 
 		state.setPolygonOffset( false );
 
+		scene.onAfterRender( _this, scene, camera );
+
 		if ( vr.enabled ) {
 
 			vr.submitFrame();
@@ -1219,6 +1230,8 @@ function WebGLRenderer( parameters ) {
 		}
 
 		// _gl.finish();
+
+		currentRenderList = null;
 
 	};
 
@@ -1302,10 +1315,6 @@ function WebGLRenderer( parameters ) {
 					spritesArray.push( object );
 
 				}
-
-			} else if ( object.isLensFlare ) {
-
-				flaresArray.push( object );
 
 			} else if ( object.isImmediateRenderObject ) {
 
@@ -2584,6 +2593,18 @@ function WebGLRenderer( parameters ) {
 		}
 
 		return true;
+
+	};
+
+	this.copyFramebufferToTexture = function ( position, texture, level ) {
+
+		var width = texture.image.width;
+		var height = texture.image.height;
+		var internalFormat = utils.convert( texture.format );
+
+		this.setTexture2D( texture, 0 );
+
+		_gl.copyTexImage2D( _gl.TEXTURE_2D, level || 0, internalFormat, position.x, position.y, width, height, 0 );
 
 	};
 

@@ -1476,7 +1476,7 @@
 
 		} );
 
-		bindSkeleton( FBXTree, skeletons, geometryMap, modelMap, connections, sceneGraph );
+		bindSkeleton( FBXTree, skeletons, geometryMap, modelMap, connections );
 
 		addAnimations( FBXTree, connections, sceneGraph );
 
@@ -1554,6 +1554,7 @@
 
 						var subBone = bone;
 						bone = new THREE.Bone();
+						bone.matrixWorld.copy( rawBone.transformLink );
 
 						// set name and id here - otherwise in cases where "subBone" is created it will not have a name / id
 						bone.name = THREE.PropertyBinding.sanitizeNodeName( name );
@@ -2006,69 +2007,14 @@
 
 	}
 
-	function bindSkeleton( FBXTree, skeletons, geometryMap, modelMap, connections, sceneGraph ) {
+	function bindSkeleton( FBXTree, skeletons, geometryMap, modelMap, connections ) {
 
-		// Now with the bones created, we can update the skeletons and bind them to the skinned meshes.
-		sceneGraph.updateMatrixWorld( true );
-
-		var worldMatrices = new Map();
-
-		// Put skeleton into bind pose.
-		if ( 'Pose' in FBXTree.Objects ) {
-
-			var BindPoseNode = FBXTree.Objects.Pose;
-
-			for ( var nodeID in BindPoseNode ) {
-
-				if ( BindPoseNode[ nodeID ].attrType === 'BindPose' ) {
-
-					var poseNodes = BindPoseNode[ nodeID ].PoseNode;
-
-					if ( Array.isArray( poseNodes ) ) {
-
-						poseNodes.forEach( function ( node ) {
-
-							var rawMatWrd = new THREE.Matrix4().fromArray( node.Matrix.a );
-							worldMatrices.set( parseInt( node.Node ), rawMatWrd );
-
-						} );
-
-					} else {
-
-						var rawMatWrd = new THREE.Matrix4().fromArray( poseNodes.Matrix.a );
-						worldMatrices.set( parseInt( poseNodes.Node ), rawMatWrd );
-
-					}
-
-				}
-
-			}
-
-		}
+		var bindMatrices = parsePoseNodes( FBXTree );
 
 		for ( var ID in skeletons ) {
 
 			var skeleton = skeletons[ ID ];
 
-			skeleton.bones.forEach( function ( bone, i ) {
-
-				// if the bone's initial transform is set in a poseNode, copy that
-				if ( worldMatrices.has( bone.ID ) ) {
-
-					var mat = worldMatrices.get( bone.ID );
-					bone.matrixWorld.copy( mat );
-
-				}
-				// otherwise use the transform from the rawBone
-				else {
-
-					bone.matrixWorld.copy( skeleton.rawBones[ i ].transformLink );
-
-				}
-
-			} );
-
-			// Now that skeleton is in bind pose, bind to model.
 			var parents = connections.get( parseInt( skeleton.ID ) ).parents;
 
 			parents.forEach( function ( parent ) {
@@ -2084,7 +2030,7 @@
 
 							var model = modelMap.get( geoConnParent.ID );
 
-							model.bind( new THREE.Skeleton( skeleton.bones ), model.matrixWorld );
+							model.bind( new THREE.Skeleton( skeleton.bones ), bindMatrices[ geoConnParent.ID ] );
 
 						}
 
@@ -2096,8 +2042,43 @@
 
 		}
 
-		//Skeleton is now bound, return objects to starting world positions.
-		sceneGraph.updateMatrixWorld( true );
+	}
+
+	function parsePoseNodes( FBXTree ) {
+
+		var bindMatrices = {};
+
+		if ( 'Pose' in FBXTree.Objects ) {
+
+			var BindPoseNode = FBXTree.Objects.Pose;
+
+			for ( var nodeID in BindPoseNode ) {
+
+				if ( BindPoseNode[ nodeID ].attrType === 'BindPose' ) {
+
+					var poseNodes = BindPoseNode[ nodeID ].PoseNode;
+
+					if ( Array.isArray( poseNodes ) ) {
+
+						poseNodes.forEach( function ( poseNode ) {
+
+							bindMatrices[ poseNode.Node ] = new THREE.Matrix4().fromArray( poseNode.Matrix.a );
+
+						} );
+
+					} else {
+
+						bindMatrices[ poseNodes.Node ] = new THREE.Matrix4().fromArray( poseNodes.Matrix.a );
+
+					}
+
+				}
+
+			}
+
+		}
+
+		return bindMatrices;
 
 	}
 
@@ -2355,21 +2336,21 @@
 
 		var tracks = [];
 
-		if ( rawTracks.T !== undefined ) {
+		if ( rawTracks.T !== undefined && Object.keys( rawTracks.T.curves ).length > 0 ) {
 
 			var positionTrack = generateVectorTrack( rawTracks.modelName, rawTracks.T.curves, rawTracks.initialPosition, 'position' );
 			if ( positionTrack !== undefined ) tracks.push( positionTrack );
 
 		}
 
-		if ( rawTracks.R !== undefined ) {
+		if ( rawTracks.R !== undefined && Object.keys( rawTracks.R.curves ).length > 0 ) {
 
 			var rotationTrack = generateRotationTrack( rawTracks.modelName, rawTracks.R.curves, rawTracks.initialRotation, rawTracks.preRotations );
 			if ( rotationTrack !== undefined ) tracks.push( rotationTrack );
 
 		}
 
-		if ( rawTracks.S !== undefined ) {
+		if ( rawTracks.S !== undefined && Object.keys( rawTracks.S.curves ).length > 0 ) {
 
 			var scaleTrack = generateVectorTrack( rawTracks.modelName, rawTracks.S.curves, rawTracks.initialScale, 'scale' );
 			if ( scaleTrack !== undefined ) tracks.push( scaleTrack );
@@ -2633,7 +2614,7 @@
 				// if the subnode already exists, append it
 				if ( nodeName in currentNode ) {
 
-					// special case Pose needs PoseNodes as an array
+				// special case Pose needs PoseNodes as an array
 					if ( nodeName === 'PoseNode' ) {
 
 						currentNode.PoseNode.push( node );
@@ -2953,7 +2934,7 @@
 
 		},
 
-		parseSubNode( name, node, subNode ) {
+		parseSubNode: function ( name, node, subNode ) {
 
 			// special case: child node is single property
 			if ( subNode.singleProperty === true ) {
@@ -2978,7 +2959,7 @@
 
 				subNode.propertyList.forEach( function ( property, i ) {
 
-							// first Connection is FBX type (OO, OP, etc.). We'll discard these
+					// first Connection is FBX type (OO, OP, etc.). We'll discard these
 					if ( i !== 0 ) array.push( property );
 
 				} );

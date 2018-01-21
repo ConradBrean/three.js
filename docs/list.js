@@ -105,7 +105,6 @@ var list = {
 
 		"Extras": {
 			"Earcut": "api/extras/Earcut",
-			"SceneUtils": "api/extras/SceneUtils",
 			"ShapeUtils": "api/extras/ShapeUtils"
 		},
 
@@ -293,7 +292,6 @@ var list = {
 		"Objects": {
 			"Bone": "api/objects/Bone",
 			"Group": "api/objects/Group",
-			"LensFlare": "api/objects/LensFlare",
 			"Line": "api/objects/Line",
 			"LineLoop": "api/objects/LineLoop",
 			"LineSegments": "api/objects/LineSegments",
@@ -362,6 +360,10 @@ var list = {
 			"PRWMLoader": "examples/loaders/PRWMLoader"
 		},
 
+		"Objects": {
+			"LensFlare": "examples/objects/LensFlare",
+		},
+
 		"Exporters": {
 			"GLTFExporter": "examples/exporters/GLTFExporter"
 		},
@@ -381,6 +383,10 @@ var list = {
 
 		"Renderers": {
 			"CanvasRenderer": "examples/renderers/CanvasRenderer"
+		},
+
+		"Utils": {
+			"SceneUtils": "examples/utils/SceneUtils"
 		}
 
 	},
