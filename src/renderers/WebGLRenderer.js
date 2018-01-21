@@ -1,17 +1,17 @@
 import { REVISION, RGBAFormat, HalfFloatType, FloatType, UnsignedByteType, FrontFaceDirectionCW, TriangleFanDrawMode, TriangleStripDrawMode, TrianglesDrawMode, NoColors, LinearToneMapping } from '../constants.js';
 import { _Math } from '../math/Math.js';
 import { Matrix4 } from '../math/Matrix4.js';
-import { DataTexture } from '../textures/DataTexture.js';
+// import { DataTexture } from '../textures/DataTexture.js';
 import { WebGLUniforms } from './webgl/WebGLUniforms.js';
 import { UniformsLib } from './shaders/UniformsLib.js';
 import { UniformsUtils } from './shaders/UniformsUtils.js';
 import { ShaderLib } from './shaders/ShaderLib.js';
-import { WebGLSpriteRenderer } from './webgl/WebGLSpriteRenderer.js';
+// import { WebGLSpriteRenderer } from './webgl/WebGLSpriteRenderer.js';
 import { WebGLShadowMap } from './webgl/WebGLShadowMap.js';
 import { WebGLAttributes } from './webgl/WebGLAttributes.js';
 import { WebGLBackground } from './webgl/WebGLBackground.js';
 import { WebGLRenderLists } from './webgl/WebGLRenderLists.js';
-import { WebGLMorphtargets } from './webgl/WebGLMorphtargets.js';
+// import { WebGLMorphtargets } from './webgl/WebGLMorphtargets.js';
 import { WebGLIndexedBufferRenderer } from './webgl/WebGLIndexedBufferRenderer.js';
 import { WebGLBufferRenderer } from './webgl/WebGLBufferRenderer.js';
 import { WebGLGeometries } from './webgl/WebGLGeometries.js';
@@ -22,7 +22,7 @@ import { WebGLTextures } from './webgl/WebGLTextures.js';
 import { WebGLProperties } from './webgl/WebGLProperties.js';
 import { WebGLState } from './webgl/WebGLState.js';
 import { WebGLCapabilities } from './webgl/WebGLCapabilities.js';
-import { WebVRManager } from './webvr/WebVRManager.js';
+// import { WebVRManager } from './webvr/WebVRManager.js';
 import { WebGLExtensions } from './webgl/WebGLExtensions.js';
 import { Vector3 } from '../math/Vector3.js';
 import { WebGLClipping } from './webgl/WebGLClipping.js';
@@ -101,8 +101,8 @@ function WebGLRenderer( parameters ) {
 
 	// morphs
 
-	this.maxMorphTargets = 8;
-	this.maxMorphNormals = 4;
+	// this.maxMorphTargets = 8;
+	// this.maxMorphNormals = 4;
 
 	// internal properties
 
@@ -257,8 +257,8 @@ function WebGLRenderer( parameters ) {
 	var properties, textures, attributes, geometries, objects, lights;
 	var programCache, renderLists;
 
-	var background, morphtargets, bufferRenderer, indexedBufferRenderer;
-	var spriteRenderer;
+	var background, /*morphtargets,*/ bufferRenderer, indexedBufferRenderer;
+	// var spriteRenderer;
 
 	var utils;
 
@@ -287,7 +287,7 @@ function WebGLRenderer( parameters ) {
 		attributes = new WebGLAttributes( _gl );
 		geometries = new WebGLGeometries( _gl, attributes, _infoMemory );
 		objects = new WebGLObjects( geometries, _infoRender );
-		morphtargets = new WebGLMorphtargets( _gl );
+		// morphtargets = new WebGLMorphtargets( _gl );
 		programCache = new WebGLPrograms( _this, extensions, capabilities );
 		lights = new WebGLLights();
 		renderLists = new WebGLRenderLists();
@@ -297,7 +297,7 @@ function WebGLRenderer( parameters ) {
 		bufferRenderer = new WebGLBufferRenderer( _gl, extensions, _infoRender );
 		indexedBufferRenderer = new WebGLIndexedBufferRenderer( _gl, extensions, _infoRender );
 
-		spriteRenderer = new WebGLSpriteRenderer( _this, _gl, state, textures, capabilities );
+		// spriteRenderer = new WebGLSpriteRenderer( _this, _gl, state, textures, capabilities );
 
 		_this.info.programs = programCache.programs;
 
@@ -311,13 +311,13 @@ function WebGLRenderer( parameters ) {
 	}
 
 	initGLContext();
-
+	/*
 	// vr
 
 	var vr = new WebVRManager( _this );
 
 	this.vr = vr;
-
+	*/
 	// shadow map
 
 	var shadowMap = new WebGLShadowMap( _this, objects, capabilities.maxTextureSize );
@@ -378,15 +378,16 @@ function WebGLRenderer( parameters ) {
 	};
 
 	this.setSize = function ( width, height, updateStyle ) {
-
+		/*
 		var device = vr.getDevice();
-
+		
 		if ( device && device.isPresenting ) {
 
 			console.warn( 'THREE.WebGLRenderer: Can\'t change size while VR device is presenting.' );
 			return;
 
 		}
+		*/
 
 		_width = width;
 		_height = height;
@@ -527,9 +528,9 @@ function WebGLRenderer( parameters ) {
 		renderLists.dispose();
 		properties.dispose();
 		objects.dispose();
-
+		/*
 		vr.dispose();
-
+		*/
 	};
 
 	// Events
@@ -713,13 +714,13 @@ function WebGLRenderer( parameters ) {
 
 		}
 
-		if ( object.morphTargetInfluences ) {
+		// if ( object.morphTargetInfluences ) {
 
-			morphtargets.update( object, geometry, material, program );
+		// 	morphtargets.update( object, geometry, material, program );
 
-			updateBuffers = true;
+		// 	updateBuffers = true;
 
-		}
+		// }
 
 		//
 
@@ -1052,15 +1053,15 @@ function WebGLRenderer( parameters ) {
 	function start() {
 
 		if ( isAnimating ) return;
-
+		/*
 		var device = vr.getDevice();
 
 		if ( device && device.isPresenting ) {
 
 			device.requestAnimationFrame( loop );
 
-		} else {
-
+		} else */ {
+		
 			window.requestAnimationFrame( loop );
 
 		}
@@ -1073,13 +1074,14 @@ function WebGLRenderer( parameters ) {
 
 		if ( onAnimationFrame !== null ) onAnimationFrame( time );
 
+		/*
 		var device = vr.getDevice();
 
 		if ( device && device.isPresenting ) {
 
 			device.requestAnimationFrame( loop );
 
-		} else {
+		} else */ {
 
 			window.requestAnimationFrame( loop );
 
@@ -1120,13 +1122,13 @@ function WebGLRenderer( parameters ) {
 		// update camera matrices and frustum
 
 		if ( camera.parent === null ) camera.updateMatrixWorld();
-
+		/*
 		if ( vr.enabled ) {
 
 			camera = vr.getCamera( camera );
 
 		}
-
+		*/
 		scene.onBeforeRender( _this, scene, camera, renderTarget );
 
 		_projScreenMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
@@ -1203,7 +1205,7 @@ function WebGLRenderer( parameters ) {
 
 		// custom renderers
 
-		spriteRenderer.render( spritesArray, scene, camera );
+		// spriteRenderer.render( spritesArray, scene, camera );
 
 		// Generate mipmap if we're using any kind of mipmap filtering
 
@@ -1222,13 +1224,13 @@ function WebGLRenderer( parameters ) {
 		state.setPolygonOffset( false );
 
 		scene.onAfterRender( _this, scene, camera );
-
+		/*
 		if ( vr.enabled ) {
 
 			vr.submitFrame();
 
 		}
-
+		*/
 		// _gl.finish();
 
 		currentRenderList = null;
@@ -1329,11 +1331,13 @@ function WebGLRenderer( parameters ) {
 
 			} else if ( object.isMesh || object.isLine || object.isPoints ) {
 
+				/*
 				if ( object.isSkinnedMesh ) {
 
 					object.skeleton.update();
 
 				}
+				*/
 
 				if ( ! object.frustumCulled || _frustum.intersectsObject( object ) ) {
 
@@ -1546,6 +1550,7 @@ function WebGLRenderer( parameters ) {
 
 		var programAttributes = program.getAttributes();
 
+		/*
 		if ( material.morphTargets ) {
 
 			material.numSupportedMorphTargets = 0;
@@ -1577,6 +1582,7 @@ function WebGLRenderer( parameters ) {
 			}
 
 		}
+		*/
 
 		var uniforms = materialProperties.shader.uniforms;
 
@@ -1763,10 +1769,11 @@ function WebGLRenderer( parameters ) {
 
 		}
 
+		/*
 		// skinning uniforms must be set even if material didn't change
 		// auto-setting of texture unit for bone texture must go before other textures
 		// not sure why, but otherwise weird things happen
-
+		
 		if ( material.skinning ) {
 
 			p_uniforms.setOptional( _gl, object, 'bindMatrix' );
@@ -1817,6 +1824,7 @@ function WebGLRenderer( parameters ) {
 			}
 
 		}
+		*/
 
 		if ( refreshMaterial ) {
 
