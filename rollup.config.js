@@ -50,11 +50,6 @@ export default [{
 	// sourceMap: true,
 	output: [
 		{
-			format: 'umd',
-			name: 'THREE',
-			file: 'build/c_three.js'
-		},
-		{
 			format: 'es',
 			file: 'build/c_three.module.js'
 		}
