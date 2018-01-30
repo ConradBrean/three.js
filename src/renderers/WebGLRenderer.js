@@ -1309,7 +1309,7 @@ function WebGLRenderer( parameters ) {
 					shadowsArray.push( object );
 
 				}
-
+			/*
 			} else if ( object.isSprite ) {
 
 				if ( ! object.frustumCulled || _frustum.intersectsSprite( object ) ) {
@@ -1328,7 +1328,7 @@ function WebGLRenderer( parameters ) {
 				}
 
 				currentRenderList.push( object, null, object.material, _vector3.z, null );
-
+			*/
 			} else if ( object.isMesh || object.isLine || object.isPoints ) {
 
 				/*
@@ -1362,7 +1362,7 @@ function WebGLRenderer( parameters ) {
 
 					var geometry = objects.update( object );
 					var material = object.material;
-
+					/*
 					if ( Array.isArray( material ) ) {
 
 						var groups = geometry.groups;
@@ -1380,7 +1380,7 @@ function WebGLRenderer( parameters ) {
 
 						}
 
-					} else if ( material.visible ) {
+					} else*/if ( material.visible ) {
 
 						currentRenderList.push( object, geometry, material, _vector3.z, null );
 
@@ -1412,7 +1412,7 @@ function WebGLRenderer( parameters ) {
 			var geometry = renderItem.geometry;
 			var material = overrideMaterial === undefined ? renderItem.material : overrideMaterial;
 			var group = renderItem.group;
-
+			/*
 			if ( camera.isArrayCamera ) {
 
 				_currentArrayCamera = camera;
@@ -1441,12 +1441,12 @@ function WebGLRenderer( parameters ) {
 				}
 
 			} else {
-
+			
 				_currentArrayCamera = null;
-
+			*/
 				renderObject( object, scene, camera, geometry, material, group );
-
-			}
+			
+			// }
 
 		}
 
@@ -1458,7 +1458,7 @@ function WebGLRenderer( parameters ) {
 
 		object.modelViewMatrix.multiplyMatrices( camera.matrixWorldInverse, object.matrixWorld );
 		object.normalMatrix.getNormalMatrix( object.modelViewMatrix );
-
+		/*
 		if ( object.isImmediateRenderObject ) {
 
 			var frontFaceCW = ( object.isMesh && object.matrixWorld.determinant() < 0 );
@@ -1472,11 +1472,11 @@ function WebGLRenderer( parameters ) {
 			renderObjectImmediate( object, program, material );
 
 		} else {
-
+		*/
 			_this.renderBufferDirect( camera, scene.fog, geometry, material, object, group );
-
+		/*
 		}
-
+		*/
 		object.onAfterRender( _this, scene, camera, geometry, material, group );
 
 	}
