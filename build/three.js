@@ -22586,6 +22586,7 @@
 							boneMatrices.set( skeleton.boneMatrices ); // copy current values
 
 							var boneTexture = new DataTexture( boneMatrices, size, size, RGBAFormat, FloatType );
+							boneTexture.needsUpdate = true;
 
 							skeleton.boneMatrices = boneMatrices;
 							skeleton.boneTexture = boneTexture;
@@ -23118,15 +23119,6 @@
 			uniforms.hemisphereLights.needsUpdate = value;
 
 		}
-
-		// GL state setting
-
-		this.setFaceCulling = function ( cullFace, frontFaceDirection ) {
-
-			state.setCullFace( cullFace );
-			state.setFlipSided( frontFaceDirection === FrontFaceDirectionCW );
-
-		};
 
 		// Textures
 
@@ -44920,6 +44912,11 @@
 		updateShadowMap: function () {
 
 			console.warn( 'THREE.WebGLRenderer: .updateShadowMap() has been removed.' );
+
+		},
+		setFaceCulling: function () {
+
+			console.warn( 'THREE.WebGLRenderer: .setFaceCulling() has been removed.' );
 
 		}
 
