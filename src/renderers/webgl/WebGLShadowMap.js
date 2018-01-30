@@ -288,12 +288,12 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 
 
 		var materialVariants = _depthMaterials;
-		var customMaterial = object.customDepthMaterial;
+		var customMaterial = material.customDepthMaterial;
 
 		if ( isPointLight ) {
 
 			materialVariants = _distanceMaterials;
-			customMaterial = object.customDistanceMaterial;
+			customMaterial = material.customDistanceMaterial;
 
 		}
 

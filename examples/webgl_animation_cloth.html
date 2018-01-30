@@ -151,7 +151,7 @@
 				object.castShadow = true;
 				scene.add( object );
 
-				object.customDepthMaterial = new THREE.MeshDepthMaterial( {
+				clothMaterial.customDepthMaterial = new THREE.MeshDepthMaterial( {
 
 					depthPacking: THREE.RGBADepthPacking,
 					map: clothTexture,
