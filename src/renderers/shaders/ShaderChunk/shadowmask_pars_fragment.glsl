@@ -9,6 +9,7 @@ float getShadowMask() {
 	DirectionalLight directionalLight;
 	float lightShadow;
 
+	#pragma unroll_loop
 	for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
 
 		directionalLight = directionalLights[ i ];
@@ -24,6 +25,7 @@ float getShadowMask() {
 	SpotLight spotLight;
 	float lightShadow;
 
+	#pragma unroll_loop
 	for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
 
 		spotLight = spotLights[ i ];
@@ -38,6 +40,7 @@ float getShadowMask() {
 	PointLight pointLight;
 	float lightShadow;
 
+	#pragma unroll_loop
 	for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
 
 		pointLight = pointLights[ i ];
