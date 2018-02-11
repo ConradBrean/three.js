@@ -430,7 +430,7 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 
 				} else */ if ( material.visible ) {
 
-					var depthMaterial = material.depthMaterial || getDepthMaterial( object, material, isPointLight, _lightPositionWorld, shadowCamera.near, shadowCamera.far );
+					var depthMaterial = object.depthMaterial || getDepthMaterial( object, material, isPointLight, _lightPositionWorld, shadowCamera.near, shadowCamera.far );
 					_renderer.renderBufferDirect( shadowCamera, null, geometry, depthMaterial, object, null );
 
 				}
