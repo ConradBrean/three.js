@@ -1689,7 +1689,7 @@ function WebGLRenderer( parameters ) {
 
 		var materialProperties = properties.get( material );
 		var lights = currentRenderState.state.lights;
-
+		/*
 		if ( _clippingEnabled ) {
 
 			if ( _localClippingEnabled || camera !== _currentCamera ) {
@@ -1708,27 +1708,27 @@ function WebGLRenderer( parameters ) {
 			}
 
 		}
-
+		*/
 		if ( material.needsUpdate === false ) {
 
 			if ( materialProperties.program === undefined ) {
 
 				material.needsUpdate = true;
-
+			/*
 			} else if ( material.fog && materialProperties.fog !== fog ) {
 
 				material.needsUpdate = true;
-
+			*/
 			} else if ( material.lights && materialProperties.lightsHash !== lights.state.hash ) {
 
 				material.needsUpdate = true;
-
+			/*
 			} else if ( materialProperties.numClippingPlanes !== undefined &&
 				( materialProperties.numClippingPlanes !== _clipping.numPlanes ||
 				materialProperties.numIntersection !== _clipping.numIntersection ) ) {
 
 				material.needsUpdate = true;
-
+			*/
 			}
 
 		}
@@ -1809,11 +1809,11 @@ function WebGLRenderer( parameters ) {
 
 			}
 
-			if ( material.isMeshPhongMaterial ||
+			if ( material.isShaderMaterial || 
+				material.isMeshPhongMaterial ||
 				material.isMeshLambertMaterial ||
 				material.isMeshBasicMaterial ||
 				material.isMeshStandardMaterial ||
-				material.isShaderMaterial ||
 				material.skinning ) {
 
 				p_uniforms.setValue( _gl, 'viewMatrix', camera.matrixWorldInverse );
@@ -1908,7 +1908,7 @@ function WebGLRenderer( parameters ) {
 
 			}
 
-			if ( material.isShaderMaterial || material.isRawShaderMaterial ){
+			if ( material.isShaderMaterial ){
 
 				// do nothing
 
