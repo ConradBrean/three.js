@@ -1,5 +1,6 @@
 import { REVISION, RGBAFormat, HalfFloatType, FloatType, UnsignedByteType, TriangleFanDrawMode, TriangleStripDrawMode, TrianglesDrawMode, NoColors, LinearToneMapping } from '../constants.js';
 import { _Math } from '../math/Math.js';
+import { Matrix3 } from '../math/Matrix3.js';
 import { Matrix4 } from '../math/Matrix4.js';
 // import { DataTexture } from '../textures/DataTexture.js';
 import { WebGLUniforms } from './webgl/WebGLUniforms.js';
@@ -1901,13 +1902,13 @@ function WebGLRenderer( parameters ) {
 			}
 
 			// refresh uniforms common to several materials
-
+			/*
 			if ( fog && material.fog ) {
 
 				refreshUniformsFog( m_uniforms, fog );
 
 			}
-
+			*/
 			if ( material.isShaderMaterial ){
 
 				// do nothing
@@ -1993,23 +1994,46 @@ function WebGLRenderer( parameters ) {
 
 			WebGLUniforms.upload( _gl, materialProperties.uniformsList, m_uniforms, _this );
 
-		}
+			currentUniforms.markDirty();
 
+		}
+		/*
 		if ( material.isShaderMaterial && material.uniformsNeedUpdate === true ) {
 
 			WebGLUniforms.upload( _gl, materialProperties.uniformsList, m_uniforms, _this );
 			material.uniformsNeedUpdate = false;
 
 		}
+		*/
 
 		// common matrices
-
-		p_uniforms.setValue( _gl, 'modelViewMatrix', object.modelViewMatrix );
-		p_uniforms.setValue( _gl, 'normalMatrix', object.normalMatrix );
-		p_uniforms.setValue( _gl, 'modelMatrix', object.matrixWorld );
+		currentUniforms.updateIfNeeded('modelViewMatrix', object.modelViewMatrix, p_uniforms);
+		currentUniforms.updateIfNeeded('normalMatrix', object.normalMatrix, p_uniforms);
+		currentUniforms.updateIfNeeded('modelMatrix', object.modelMatrix, p_uniforms);
 
 		return program;
 
+	}
+
+	var currentUniforms = {
+		modelViewMatrix: { value: new Matrix4(), needsUpdate: true },
+		normalMatrix: { value: new Matrix3(), needsUpdate: true },
+		modelMatrix: { value: new Matrix4(), needsUpdate: true },
+
+		updateIfNeeded: function(name, value, p_uniforms) {
+			const uniform = this[name];
+			if (value && (uniform.needsUpdate || !uniform.value.equals(value))){
+				p_uniforms.setValue( _gl, name, value);
+				uniform.value.copy(value);
+				uniform.needsUpdate = false;
+			}
+		},
+
+		markDirty: function(){
+			this.modelViewMatrix.needsUpdate = true;
+			this.normalMatrix.needsUpdate = true;
+			this.modelMatrix.needsUpdate = true;
+		}
 	}
 
 	// Uniforms (refresh uniforms objects)
