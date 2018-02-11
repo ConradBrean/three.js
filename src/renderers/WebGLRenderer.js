@@ -2022,7 +2022,7 @@ function WebGLRenderer( parameters ) {
 
 		updateIfNeeded: function(name, value, p_uniforms) {
 			const uniform = this[name];
-			if (value && (uniform.needsUpdate || !uniform.value.equals(value))){
+			if (uniform.needsUpdate || !uniform.value.equals(value)){
 				p_uniforms.setValue( _gl, name, value);
 				uniform.value.copy(value);
 				uniform.needsUpdate = false;
