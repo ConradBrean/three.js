@@ -1821,6 +1821,8 @@ function WebGLRenderer( parameters ) {
 
 			}
 
+			currentUniforms.markDirty();
+
 		}
 
 		/*
@@ -1993,8 +1995,6 @@ function WebGLRenderer( parameters ) {
 			if ( m_uniforms.ltc_2 !== undefined ) m_uniforms.ltc_2.value = UniformsLib.LTC_2;
 
 			WebGLUniforms.upload( _gl, materialProperties.uniformsList, m_uniforms, _this );
-
-			currentUniforms.markDirty();
 
 		}
 		/*
