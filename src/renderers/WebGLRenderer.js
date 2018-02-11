@@ -2009,7 +2009,7 @@ function WebGLRenderer( parameters ) {
 		// common matrices
 		currentUniforms.updateIfNeeded('modelViewMatrix', object.modelViewMatrix, p_uniforms);
 		currentUniforms.updateIfNeeded('normalMatrix', object.normalMatrix, p_uniforms);
-		currentUniforms.updateIfNeeded('modelMatrix', object.modelMatrix, p_uniforms);
+		currentUniforms.updateIfNeeded('modelMatrix', object.matrixWorld, p_uniforms);
 
 		return program;
 
