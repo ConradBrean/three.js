@@ -1246,6 +1246,27 @@ function WebGLRenderer( parameters ) {
 
 	};
 
+	this.setupCurrentRenderStateWithLights = function (sceneOfLights, camera) {
+		if ( ! ( camera && camera.isCamera ) ) {
+			console.error( 'THREE.WebGLRenderer.render: camera is not an instance of THREE.Camera.' );
+			return;
+		}
+		currentRenderState = renderStates.get( sceneOfLights, camera );
+		currentRenderState.init();
+		for ( const light of sceneOfLights.children) {
+			if (light.isLight){
+				currentRenderState.pushLight(light);
+			} else {
+				throw light + ' is not light, can not set up renderstate';
+			}
+		}
+		currentRenderState.setupLights( camera );
+	};
+
+	this.resetCurrentRenderState = function () {
+		currentRenderState = null;
+	}
+
 	/*
 	// TODO Duplicated code (Frustum)
 
