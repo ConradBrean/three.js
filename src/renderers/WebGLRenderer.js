@@ -1962,6 +1962,12 @@ function WebGLRenderer( parameters ) {
 
 		}
 
+		if ( material.isShaderMaterial && material.uniformsNeedUpdate === true ) {
+
+			WebGLUniforms.upload( _gl, materialProperties.uniformsList, m_uniforms, _this );
+			material.uniformsNeedUpdate = false;
+
+		}
 
 		// common matrices
 

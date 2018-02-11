@@ -14562,6 +14562,7 @@ function ShaderMaterial( parameters ) {
 	};
 
 	this.index0AttributeName = undefined;
+	this.uniformsNeedUpdate = false;
 
 	if ( parameters !== undefined ) {
 
@@ -22273,6 +22274,12 @@ function WebGLRenderer( parameters ) {
 
 		}
 
+		if ( material.isShaderMaterial && material.uniformsNeedUpdate === true ) {
+
+			WebGLUniforms.upload( _gl, materialProperties.uniformsList, m_uniforms, _this );
+			material.uniformsNeedUpdate = false;
+
+		}
 
 		// common matrices
 
