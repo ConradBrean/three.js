@@ -21429,6 +21429,10 @@ function WebGLRenderer( parameters ) {
 			console.error( 'THREE.WebGLRenderer.render: camera is not an instance of THREE.Camera.' );
 			return;
 		}
+		_currentGeometryProgram = '';
+		_currentMaterialId = - 1;
+		_currentCamera = null;
+		
 		currentRenderState = renderStates.get( sceneOfLights, camera );
 		currentRenderState.init();
 		for ( const light of sceneOfLights.children) {
@@ -21443,6 +21447,14 @@ function WebGLRenderer( parameters ) {
 
 	this.resetCurrentRenderState = function () {
 		currentRenderState = null;
+		state.buffers.depth.setTest( true );
+		state.buffers.depth.setMask( true );
+		state.buffers.color.setMask( true );
+		state.setPolygonOffset(false);
+	};
+
+	this.getWebglObjects = function () {
+		return objects;
 	};
 
 	/*
