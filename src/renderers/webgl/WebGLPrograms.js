@@ -189,7 +189,7 @@ function WebGLPrograms( renderer, extensions, capabilities ) {
 
 			dithering: material.dithering,
 
-			shadowMapEnabled: renderer.shadowMap.enabled && object.receiveShadow && shadows.length > 0,
+			shadowMapEnabled: renderer.shadowMap.enabled && object.receiveShadow /*&& shadows.length > 0*/,
 			shadowMapType: renderer.shadowMap.type,
 			shadowMapPacking: renderer.shadowMap.depthPacking,
 
