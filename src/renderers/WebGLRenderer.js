@@ -713,7 +713,7 @@ function WebGLRenderer( parameters ) {
 
 			_currentProgram = setProgram( camera, fog, material, object );
 
-			_currentMaterialId = material.id;
+			//_currentMaterialId is set inside setProgram
 			_currentMatrixWorld.copy(object.matrixWorld);
 
 		}
