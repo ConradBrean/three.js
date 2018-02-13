@@ -114,6 +114,8 @@ function WebGLRenderer( parameters ) {
 		_currentMaterialId = - 1,
 		_currentGeometryProgram = '',
 
+		_currentProgram = null,
+
 		_currentCamera = null,
 		_currentArrayCamera = null,
 
@@ -699,12 +701,20 @@ function WebGLRenderer( parameters ) {
 
 	this.renderBufferDirect = function ( camera, fog, geometry, material, object, group ) {
 
-		var frontFaceCW = ( object.isMesh && object.matrixWorld.determinant() < 0 );
+		if (_currentMaterialId !== material.id) {
 
-		state.setMaterial( material, frontFaceCW );
+			var frontFaceCW = false; //( object.isMesh && object.matrixWorld.determinant() < 0 );
 
-		var program = setProgram( camera, fog, material, object );
-		var geometryProgram = geometry.id + '_' + program.id + '_' + ( material.wireframe === true );
+			state.setMaterial( material, frontFaceCW );
+
+			_currentProgram = setProgram( camera, fog, material, object );
+
+			_currentMaterialId = material.id;
+
+		}
+	  
+		var program = _currentProgram;
+		var geometryProgram = geometry.id + '_' + program.id + ( material.wireframe === true );
 
 		var updateBuffers = false;
 
@@ -1118,6 +1128,7 @@ function WebGLRenderer( parameters ) {
 		_currentGeometryProgram = '';
 		_currentMaterialId = - 1;
 		_currentCamera = null;
+		_currentProgram = null;
 
 		// update scene graph
 
@@ -1255,6 +1266,8 @@ function WebGLRenderer( parameters ) {
 		_currentGeometryProgram = '';
 		_currentMaterialId = - 1;
 		_currentCamera = null;
+		_currentProgram = null;
+		
 		
 		currentRenderState = renderStates.get( sceneOfLights, camera );
 		currentRenderState.init();
