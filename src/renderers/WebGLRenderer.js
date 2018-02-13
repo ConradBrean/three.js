@@ -704,6 +704,7 @@ function WebGLRenderer( parameters ) {
 
 		if (!(_currentMaterialId === material.id && _currentMatrixWorld.equals(object.matrixWorld))) {
 			// note: matrix world comparision needed for cases where objects with different transforms share the same material
+			// assumption is that other p_uniforms matrices are gonne be equal if model matrices are equal
 
 			var frontFaceCW = false; //( object.isMesh && object.matrixWorld.determinant() < 0 );
 
