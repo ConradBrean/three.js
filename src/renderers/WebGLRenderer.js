@@ -115,6 +115,7 @@ function WebGLRenderer( parameters ) {
 		_currentGeometryProgram = '',
 
 		_currentProgram = null,
+		_currentMatrixWorld = new Matrix4(),
 
 		_currentCamera = null,
 		_currentArrayCamera = null,
@@ -701,7 +702,8 @@ function WebGLRenderer( parameters ) {
 
 	this.renderBufferDirect = function ( camera, fog, geometry, material, object, group ) {
 
-		if (_currentMaterialId !== material.id) {
+		if (!(_currentMaterialId === material.id && _currentMatrixWorld.equals(object.matrixWorld))) {
+			// note: matrix world comparision needed for cases where objects with different transforms share the same material
 
 			var frontFaceCW = false; //( object.isMesh && object.matrixWorld.determinant() < 0 );
 
@@ -710,6 +712,7 @@ function WebGLRenderer( parameters ) {
 			_currentProgram = setProgram( camera, fog, material, object );
 
 			_currentMaterialId = material.id;
+			_currentMatrixWorld.copy(object.matrixWorld);
 
 		}
 	  
