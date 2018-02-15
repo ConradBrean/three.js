@@ -789,21 +789,21 @@ function WebGLRenderer( parameters ) {
 
 		}
 
-		var rangeStart = geometry.drawRange.start * rangeFactor;
-		var rangeCount = geometry.drawRange.count * rangeFactor;
+		var rangeStart = geometry.drawRange.start;
+		var rangeCount = geometry.drawRange.count;
 
-		if (object.isMesh){
+		if (object.isMesh) {
 			rangeStart = Math.max(rangeStart, object.drawRange.start);
 			rangeCount = Math.min(rangeCount, object.drawRange.count);
 		}
 
-		var groupStart = group !== null ? group.start * rangeFactor : 0;
-		var groupCount = group !== null ? group.count * rangeFactor : Infinity;
+		var groupStart = group !== null ? group.start : 0;
+		var groupCount = group !== null ? group.count : Infinity;
 
-		var drawStart = Math.max( rangeStart, groupStart );
-		var drawEnd = Math.min( dataCount, rangeStart + rangeCount, groupStart + groupCount ) - 1;
+		var drawStart = Math.max( rangeStart, groupStart ) * rangeFactor;
+		var drawEnd = Math.min( dataCount, rangeStart + rangeCount, groupStart + groupCount ) * rangeFactor;
 
-		var drawCount = Math.max( 0, drawEnd - drawStart + 1 );
+		var drawCount = Math.max( 0, drawEnd - drawStart );
 
 		if ( drawCount === 0 ) return;
 
