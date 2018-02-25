@@ -108,7 +108,7 @@ function WebGLGeometries( gl, attributes, infoMemory ) {
 		}
 
 		// morph targets
-
+		/*
 		var morphAttributes = geometry.morphAttributes;
 
 		for ( var name in morphAttributes ) {
@@ -122,7 +122,7 @@ function WebGLGeometries( gl, attributes, infoMemory ) {
 			}
 
 		}
-
+		*/
 	}
 
 	function getWireframeAttribute( geometry ) {
