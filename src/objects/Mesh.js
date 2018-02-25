@@ -28,9 +28,9 @@ function Mesh( geometry, material ) {
 	this.material = material !== undefined ? material : new MeshBasicMaterial( { color: Math.random() * 0xffffff } );
 
 	this.drawMode = TrianglesDrawMode;
-
+	/*
 	this.updateMorphTargets();
-
+	*/
 }
 
 Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
@@ -66,7 +66,7 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 		return this;
 
 	},
-
+	/*
 	updateMorphTargets: function () {
 
 		var geometry = this.geometry;
@@ -122,7 +122,7 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 		}
 
 	},
-
+	*/
 	raycast: ( function () {
 
 		var inverseMatrix = new Matrix4();
