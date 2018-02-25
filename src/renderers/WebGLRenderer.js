@@ -719,7 +719,7 @@ function WebGLRenderer( parameters ) {
 		}
 	  
 		var program = _currentProgram;
-		var geometryProgram = geometry.id + '_' + program.id + ( material.wireframe === true );
+		var geometryProgram = geometry.id * 1000 + program.id  * 2 + ( material.wireframe === true ? 1 : 0);
 
 		var updateBuffers = false;
 
@@ -882,7 +882,7 @@ function WebGLRenderer( parameters ) {
 	};
 
 	function setupVertexAttributes( material, program, geometry, startIndex ) {
-
+		/*
 		if ( geometry && geometry.isInstancedBufferGeometry ) {
 
 			if ( extensions.get( 'ANGLE_instanced_arrays' ) === null ) {
@@ -893,7 +893,7 @@ function WebGLRenderer( parameters ) {
 			}
 
 		}
-
+		*/
 		if ( startIndex === undefined ) startIndex = 0;
 
 		state.initAttributes();
@@ -926,7 +926,7 @@ function WebGLRenderer( parameters ) {
 					var buffer = attribute.buffer;
 					var type = attribute.type;
 					var bytesPerElement = attribute.bytesPerElement;
-
+					/*
 					if ( geometryAttribute.isInterleavedBufferAttribute ) {
 
 						var data = geometryAttribute.data;
@@ -952,7 +952,7 @@ function WebGLRenderer( parameters ) {
 						_gl.bindBuffer( _gl.ARRAY_BUFFER, buffer );
 						_gl.vertexAttribPointer( programAttribute, size, type, normalized, stride * bytesPerElement, ( startIndex * stride + offset ) * bytesPerElement );
 
-					} else {
+					} else */ {
 
 						if ( geometryAttribute.isInstancedBufferAttribute ) {
 
@@ -1130,7 +1130,7 @@ function WebGLRenderer( parameters ) {
 
 		// reset caching for this frame
 
-		_currentGeometryProgram = '';
+		_currentGeometryProgram = -1;
 		_currentMaterialId = - 1;
 		_currentCamera = null;
 		_currentProgram = null;
@@ -1268,7 +1268,7 @@ function WebGLRenderer( parameters ) {
 			console.error( 'THREE.WebGLRenderer.render: camera is not an instance of THREE.Camera.' );
 			return;
 		}
-		_currentGeometryProgram = '';
+		_currentGeometryProgram = -1;
 		_currentMaterialId = - 1;
 		_currentCamera = null;
 		_currentProgram = null;
@@ -1796,9 +1796,9 @@ function WebGLRenderer( parameters ) {
 
 			// Avoid unneeded uniform updates per ArrayCamera's sub-camera
 
-			if ( _currentCamera !== ( _currentArrayCamera || camera ) ) {
+			if ( _currentCamera !== (/* _currentArrayCamera ||*/ camera ) ) {
 
-				_currentCamera = ( _currentArrayCamera || camera );
+				_currentCamera = (/* _currentArrayCamera ||*/ camera );
 
 				// lighting uniforms depend on the camera so enforce an update
 				// now, in case this material supports lights - or later, when
@@ -2008,10 +2008,10 @@ function WebGLRenderer( parameters ) {
 
 			// RectAreaLight Texture
 			// TODO (mrdoob): Find a nicer implementation
-
+			/*
 			if ( m_uniforms.ltc_1 !== undefined ) m_uniforms.ltc_1.value = UniformsLib.LTC_1;
 			if ( m_uniforms.ltc_2 !== undefined ) m_uniforms.ltc_2.value = UniformsLib.LTC_2;
-
+			*/
 			WebGLUniforms.upload( _gl, materialProperties.uniformsList, m_uniforms, _this );
 
 		}
