@@ -46,7 +46,7 @@ export { Geometry } from './core/Geometry.js';
 export { InstancedBufferAttribute } from './core/InstancedBufferAttribute.js';
 export * from './core/BufferAttribute.js';
 export { Face3 } from './core/Face3.js';
-export { Object3D } from './core/Object3D.js';
+export { Object3D, generateObject3dId } from './core/Object3D.js';
 export { Raycaster } from './core/Raycaster.js';
 export { Layers } from './core/Layers.js';
 export { EventDispatcher } from './core/EventDispatcher.js';

@@ -17,9 +17,13 @@ import { _Math } from '../math/Math.js';
 
 var object3DId = 0;
 
+function generateObject3dId(){
+	return object3DId ++;
+}
+
 function Object3D() {
 
-	Object.defineProperty( this, 'id', { value: object3DId ++ } );
+	Object.defineProperty( this, 'id', { value: generateObject3dId() } );
 
 	this.uuid = _Math.generateUUID();
 
@@ -827,4 +831,4 @@ Object3D.prototype = Object.assign( Object.create( EventDispatcher.prototype ), 
 } );
 
 
-export { Object3D };
+export { Object3D, generateObject3dId };

@@ -8685,6 +8685,8 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 
 	this.type = PCFShadowMap;
 
+	this.onBeforeSceneRender = function(){};
+
 	this.render = function ( lights, scene, camera ) {
 
 		if ( scope.enabled === false ) return;
@@ -8857,7 +8859,7 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 				_frustum.setFromMatrix( _projScreenMatrix );
 
 				// set object matrices & frustum culling
-
+				this.onBeforeSceneRender(shadowCamera);
 				renderObject( scene, camera, shadowCamera, isPointLight );
 
 			}
@@ -9054,7 +9056,7 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 
 				} else */ if ( material.visible ) {
 
-					var depthMaterial = object.depthMaterial || getDepthMaterial( object, material, isPointLight, _lightPositionWorld, shadowCamera.near, shadowCamera.far );
+					var depthMaterial = getDepthMaterial( object, material, isPointLight, _lightPositionWorld, shadowCamera.near, shadowCamera.far );
 					_renderer.renderBufferDirect( shadowCamera, null, geometry, depthMaterial, object, null );
 
 				}
@@ -9627,9 +9629,13 @@ Object.assign( Layers.prototype, {
 
 var object3DId = 0;
 
+function generateObject3dId(){
+	return object3DId ++;
+}
+
 function Object3D() {
 
-	Object.defineProperty( this, 'id', { value: object3DId ++ } );
+	Object.defineProperty( this, 'id', { value: generateObject3dId() } );
 
 	this.uuid = _Math.generateUUID();
 
@@ -15420,9 +15426,9 @@ function Mesh( geometry, material ) {
 	this.material = material !== undefined ? material : new MeshBasicMaterial( { color: Math.random() * 0xffffff } );
 
 	this.drawMode = TrianglesDrawMode;
-
+	/*
 	this.updateMorphTargets();
-
+	*/
 }
 
 Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
@@ -15458,7 +15464,7 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 		return this;
 
 	},
-
+	/*
 	updateMorphTargets: function () {
 
 		var geometry = this.geometry;
@@ -15514,7 +15520,7 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 		}
 
 	},
-
+	*/
 	raycast: ( function () {
 
 		var inverseMatrix = new Matrix4();
@@ -15652,12 +15658,14 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 				var uv = geometry.attributes.uv;
 				var i, l;
 				var drawRange = geometry.drawRange;
+				var drawStart = Math.max(this.drawRange.start, geometry.drawRange.start);
+				var drawCount = Math.min(this.drawRange.count, geometry.drawRange.count);
 
 				if ( index !== null ) {
 
 					// indexed buffer geometry
 					
-					for ( i = drawRange.start, l = Math.min(index.count, i + drawRange.count); i < l; i += 3 ) {
+					for ( i = drawStart, l = Math.min(index.count, i + drawCount); i < l; i += 3 ) {
 
 						a = index.getX( i );
 						b = index.getX( i + 1 );
@@ -15678,7 +15686,7 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 
 					// non-indexed buffer geometry
 
-					for ( i = drawRange.start, l = Math.min(position.count, i + drawRange.count); i < l; i += 3 ) {
+					for ( i = drawStart, l = Math.min(position.count, i + drawCount); i < l; i += 3 ) {
 
 						a = i;
 						b = i + 1;
@@ -17355,7 +17363,7 @@ function WebGLPrograms( renderer, extensions, capabilities ) {
 
 			dithering: material.dithering,
 
-			shadowMapEnabled: renderer.shadowMap.enabled && object.receiveShadow && shadows.length > 0,
+			shadowMapEnabled: renderer.shadowMap.enabled && object.receiveShadow /*&& shadows.length > 0*/,
 			shadowMapType: renderer.shadowMap.type,
 			shadowMapPacking: renderer.shadowMap.depthPacking,
 
@@ -20301,6 +20309,9 @@ function WebGLRenderer( parameters ) {
 		_currentMaterialId = - 1,
 		_currentGeometryProgram = '',
 
+		_currentProgram = null,
+		_currentMatrixWorld = new Matrix4(),
+
 		_currentCamera = null,
 		_currentArrayCamera = null,
 
@@ -20876,12 +20887,24 @@ function WebGLRenderer( parameters ) {
 
 	this.renderBufferDirect = function ( camera, fog, geometry, material, object, group ) {
 
-		var frontFaceCW = ( object.isMesh && object.matrixWorld.determinant() < 0 );
+		if (!(_currentMaterialId === material.id && _currentMatrixWorld.equals(object.matrixWorld))) {
+			// note: matrix world comparision needed for cases where objects with different transforms share the same material
+			// assumption is that other p_uniforms matrices are gonne be equal if model matrices are equal
+			// and the rest parameters are the same between calls
 
-		state.setMaterial( material, frontFaceCW );
+			var frontFaceCW = false; //( object.isMesh && object.matrixWorld.determinant() < 0 );
 
-		var program = setProgram( camera, fog, material, object );
-		var geometryProgram = geometry.id + '_' + program.id + '_' + ( material.wireframe === true );
+			state.setMaterial( material, frontFaceCW );
+
+			_currentProgram = setProgram( camera, fog, material, object );
+
+			//_currentMaterialId is set inside setProgram
+			_currentMatrixWorld.copy(object.matrixWorld);
+
+		}
+	  
+		var program = _currentProgram;
+		var geometryProgram = geometry.id + '_' + program.id + ( material.wireframe === true );
 
 		var updateBuffers = false;
 
@@ -20951,21 +20974,21 @@ function WebGLRenderer( parameters ) {
 
 		}
 
-		var rangeStart = geometry.drawRange.start * rangeFactor;
-		var rangeCount = geometry.drawRange.count * rangeFactor;
+		var rangeStart = geometry.drawRange.start;
+		var rangeCount = geometry.drawRange.count;
 
-		if (object.isMesh){
+		if (object.isMesh) {
 			rangeStart = Math.max(rangeStart, object.drawRange.start);
 			rangeCount = Math.min(rangeCount, object.drawRange.count);
 		}
 
-		var groupStart = group !== null ? group.start * rangeFactor : 0;
-		var groupCount = group !== null ? group.count * rangeFactor : Infinity;
+		var groupStart = group !== null ? group.start : 0;
+		var groupCount = group !== null ? group.count : Infinity;
 
-		var drawStart = Math.max( rangeStart, groupStart );
-		var drawEnd = Math.min( dataCount, rangeStart + rangeCount, groupStart + groupCount ) - 1;
+		var drawStart = Math.max( rangeStart, groupStart ) * rangeFactor;
+		var drawEnd = Math.min( dataCount, rangeStart + rangeCount, groupStart + groupCount ) * rangeFactor;
 
-		var drawCount = Math.max( 0, drawEnd - drawStart + 1 );
+		var drawCount = Math.max( 0, drawEnd - drawStart );
 
 		if ( drawCount === 0 ) return;
 
@@ -21295,6 +21318,7 @@ function WebGLRenderer( parameters ) {
 		_currentGeometryProgram = '';
 		_currentMaterialId = - 1;
 		_currentCamera = null;
+		_currentProgram = null;
 
 		// update scene graph
 
@@ -21432,6 +21456,8 @@ function WebGLRenderer( parameters ) {
 		_currentGeometryProgram = '';
 		_currentMaterialId = - 1;
 		_currentCamera = null;
+		_currentProgram = null;
+		
 		
 		currentRenderState = renderStates.get( sceneOfLights, camera );
 		currentRenderState.init();
@@ -21867,7 +21893,7 @@ function WebGLRenderer( parameters ) {
 
 		var materialProperties = properties.get( material );
 		var lights = currentRenderState.state.lights;
-
+		/*
 		if ( _clippingEnabled ) {
 
 			if ( _localClippingEnabled || camera !== _currentCamera ) {
@@ -21886,27 +21912,27 @@ function WebGLRenderer( parameters ) {
 			}
 
 		}
-
+		*/
 		if ( material.needsUpdate === false ) {
 
 			if ( materialProperties.program === undefined ) {
 
 				material.needsUpdate = true;
-
+			/*
 			} else if ( material.fog && materialProperties.fog !== fog ) {
 
 				material.needsUpdate = true;
-
+			*/
 			} else if ( material.lights && materialProperties.lightsHash !== lights.state.hash ) {
 
 				material.needsUpdate = true;
-
+			/*
 			} else if ( materialProperties.numClippingPlanes !== undefined &&
 				( materialProperties.numClippingPlanes !== _clipping.numPlanes ||
 				materialProperties.numIntersection !== _clipping.numIntersection ) ) {
 
 				material.needsUpdate = true;
-
+			*/
 			}
 
 		}
@@ -21987,16 +22013,18 @@ function WebGLRenderer( parameters ) {
 
 			}
 
-			if ( material.isMeshPhongMaterial ||
+			if ( material.isShaderMaterial || 
+				material.isMeshPhongMaterial ||
 				material.isMeshLambertMaterial ||
 				material.isMeshBasicMaterial ||
 				material.isMeshStandardMaterial ||
-				material.isShaderMaterial ||
 				material.skinning ) {
 
 				p_uniforms.setValue( _gl, 'viewMatrix', camera.matrixWorldInverse );
 
 			}
+
+			currentUniforms.markDirty();
 
 		}
 
@@ -22079,14 +22107,14 @@ function WebGLRenderer( parameters ) {
 			}
 
 			// refresh uniforms common to several materials
-
+			/*
 			if ( fog && material.fog ) {
 
 				refreshUniformsFog( m_uniforms, fog );
 
 			}
-
-			if ( material.isShaderMaterial || material.isRawShaderMaterial ){
+			*/
+			if ( material.isShaderMaterial ){
 
 				// do nothing
 
@@ -22172,23 +22200,44 @@ function WebGLRenderer( parameters ) {
 			WebGLUniforms.upload( _gl, materialProperties.uniformsList, m_uniforms, _this );
 
 		}
-
+		/*
 		if ( material.isShaderMaterial && material.uniformsNeedUpdate === true ) {
 
 			WebGLUniforms.upload( _gl, materialProperties.uniformsList, m_uniforms, _this );
 			material.uniformsNeedUpdate = false;
 
 		}
+		*/
 
 		// common matrices
-
-		p_uniforms.setValue( _gl, 'modelViewMatrix', object.modelViewMatrix );
-		p_uniforms.setValue( _gl, 'normalMatrix', object.normalMatrix );
-		p_uniforms.setValue( _gl, 'modelMatrix', object.matrixWorld );
+		currentUniforms.updateIfNeeded('modelViewMatrix', object.modelViewMatrix, p_uniforms);
+		currentUniforms.updateIfNeeded('normalMatrix', object.normalMatrix, p_uniforms);
+		currentUniforms.updateIfNeeded('modelMatrix', object.matrixWorld, p_uniforms);
 
 		return program;
 
 	}
+
+	var currentUniforms = {
+		modelViewMatrix: { value: new Matrix4(), needsUpdate: true },
+		normalMatrix: { value: new Matrix3(), needsUpdate: true },
+		modelMatrix: { value: new Matrix4(), needsUpdate: true },
+
+		updateIfNeeded: function(name, value, p_uniforms) {
+			const uniform = this[name];
+			if (uniform.needsUpdate || !uniform.value.equals(value)){
+				p_uniforms.setValue( _gl, name, value);
+				uniform.value.copy(value);
+				uniform.needsUpdate = false;
+			}
+		},
+
+		markDirty: function(){
+			this.modelViewMatrix.needsUpdate = true;
+			this.normalMatrix.needsUpdate = true;
+			this.modelMatrix.needsUpdate = true;
+		}
+	};
 
 	// Uniforms (refresh uniforms objects)
 
@@ -22367,23 +22416,6 @@ function WebGLRenderer( parameters ) {
 			}
 
 			uniforms.uvTransform.value.copy( material.map.matrix );
-
-		}
-
-	}
-
-	function refreshUniformsFog( uniforms, fog ) {
-
-		uniforms.fogColor.value = fog.color;
-
-		if ( fog.isFog ) {
-
-			uniforms.fogNear.value = fog.near;
-			uniforms.fogFar.value = fog.far;
-
-		} else if ( fog.isFogExp2 ) {
-
-			uniforms.fogDensity.value = fog.density;
 
 		}
 
@@ -29560,4 +29592,4 @@ Shape.prototype = Object.assign( Object.create( Path.prototype ), {
 
 } );
 
-export { WebGLRenderTarget, WebGLRenderer, ShaderLib, UniformsLib, UniformsUtils, ShaderChunk, Scene, Mesh, Group, CompressedTexture, CubeTexture, DepthTexture, Texture, PlaneGeometry, PlaneBufferGeometry, ShapeGeometry, ShapeBufferGeometry, ExtrudeGeometry, ExtrudeBufferGeometry, BoxGeometry, BoxBufferGeometry, CircleBufferGeometry, RingBufferGeometry, ShadowMaterial, RawShaderMaterial, ShaderMaterial, MeshDepthMaterial, MeshBasicMaterial, LineDashedMaterial, LineBasicMaterial, Material, CompressedTextureLoader, CubeTextureLoader, TextureLoader, Cache, DirectionalLightShadow, DirectionalLight, AmbientLight, LightShadow, Light, PerspectiveCamera, OrthographicCamera, Uniform, InstancedBufferGeometry, BufferGeometry, Geometry, InstancedBufferAttribute, Face3, Object3D, Raycaster, Layers, EventDispatcher, Triangle, _Math as Math, Spherical, Cylindrical, Plane, Frustum, Sphere, Ray, Matrix4, Matrix3, Box3, Line3, Euler, Vector4, Vector3, Vector2, Quaternion, Color, Box3Helper, DirectionalLightHelper, CameraHelper, Shape, WebGLUtils, Float64BufferAttribute, Float32BufferAttribute, Uint32BufferAttribute, Int32BufferAttribute, Uint16BufferAttribute, Int16BufferAttribute, Uint8ClampedBufferAttribute, Uint8BufferAttribute, Int8BufferAttribute, BufferAttribute, REVISION, MOUSE, CullFaceNone, CullFaceBack, CullFaceFront, CullFaceFrontBack, FrontFaceDirectionCW, FrontFaceDirectionCCW, BasicShadowMap, PCFShadowMap, PCFSoftShadowMap, FrontSide, BackSide, DoubleSide, FlatShading, SmoothShading, NoColors, FaceColors, VertexColors, NoBlending, NormalBlending, AdditiveBlending, SubtractiveBlending, MultiplyBlending, CustomBlending, AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation, ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor, NeverDepth, AlwaysDepth, LessDepth, LessEqualDepth, EqualDepth, GreaterEqualDepth, GreaterDepth, NotEqualDepth, MultiplyOperation, MixOperation, AddOperation, NoToneMapping, LinearToneMapping, ReinhardToneMapping, Uncharted2ToneMapping, CineonToneMapping, UVMapping, CubeReflectionMapping, CubeRefractionMapping, EquirectangularReflectionMapping, EquirectangularRefractionMapping, SphericalReflectionMapping, CubeUVReflectionMapping, CubeUVRefractionMapping, RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping, NearestFilter, NearestMipMapNearestFilter, NearestMipMapLinearFilter, LinearFilter, LinearMipMapNearestFilter, LinearMipMapLinearFilter, UnsignedByteType, ByteType, ShortType, UnsignedShortType, IntType, UnsignedIntType, FloatType, HalfFloatType, UnsignedShort4444Type, UnsignedShort5551Type, UnsignedShort565Type, UnsignedInt248Type, AlphaFormat, RGBFormat, RGBAFormat, LuminanceFormat, LuminanceAlphaFormat, RGBEFormat, DepthFormat, DepthStencilFormat, RGB_S3TC_DXT1_Format, RGBA_S3TC_DXT1_Format, RGBA_S3TC_DXT3_Format, RGBA_S3TC_DXT5_Format, RGB_PVRTC_4BPPV1_Format, RGB_PVRTC_2BPPV1_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_PVRTC_2BPPV1_Format, RGB_ETC1_Format, RGBA_ASTC_4x4_Format, RGBA_ASTC_5x4_Format, RGBA_ASTC_5x5_Format, RGBA_ASTC_6x5_Format, RGBA_ASTC_6x6_Format, RGBA_ASTC_8x5_Format, RGBA_ASTC_8x6_Format, RGBA_ASTC_8x8_Format, RGBA_ASTC_10x5_Format, RGBA_ASTC_10x6_Format, RGBA_ASTC_10x8_Format, RGBA_ASTC_10x10_Format, RGBA_ASTC_12x10_Format, RGBA_ASTC_12x12_Format, LoopOnce, LoopRepeat, LoopPingPong, InterpolateDiscrete, InterpolateLinear, InterpolateSmooth, ZeroCurvatureEnding, ZeroSlopeEnding, WrapAroundEnding, TrianglesDrawMode, TriangleStripDrawMode, TriangleFanDrawMode, LinearEncoding, sRGBEncoding, GammaEncoding, RGBEEncoding, LogLuvEncoding, RGBM7Encoding, RGBM16Encoding, RGBDEncoding, BasicDepthPacking, RGBADepthPacking, FloatDepthPacking };
+export { WebGLRenderTarget, WebGLRenderer, ShaderLib, UniformsLib, UniformsUtils, ShaderChunk, Scene, Mesh, Group, CompressedTexture, CubeTexture, DepthTexture, Texture, PlaneGeometry, PlaneBufferGeometry, ShapeGeometry, ShapeBufferGeometry, ExtrudeGeometry, ExtrudeBufferGeometry, BoxGeometry, BoxBufferGeometry, CircleBufferGeometry, RingBufferGeometry, ShadowMaterial, RawShaderMaterial, ShaderMaterial, MeshDepthMaterial, MeshBasicMaterial, LineDashedMaterial, LineBasicMaterial, Material, CompressedTextureLoader, CubeTextureLoader, TextureLoader, Cache, DirectionalLightShadow, DirectionalLight, AmbientLight, LightShadow, Light, PerspectiveCamera, OrthographicCamera, Uniform, InstancedBufferGeometry, BufferGeometry, Geometry, InstancedBufferAttribute, Face3, Object3D, generateObject3dId, Raycaster, Layers, EventDispatcher, Triangle, _Math as Math, Spherical, Cylindrical, Plane, Frustum, Sphere, Ray, Matrix4, Matrix3, Box3, Line3, Euler, Vector4, Vector3, Vector2, Quaternion, Color, Box3Helper, DirectionalLightHelper, CameraHelper, Shape, WebGLUtils, Float64BufferAttribute, Float32BufferAttribute, Uint32BufferAttribute, Int32BufferAttribute, Uint16BufferAttribute, Int16BufferAttribute, Uint8ClampedBufferAttribute, Uint8BufferAttribute, Int8BufferAttribute, BufferAttribute, REVISION, MOUSE, CullFaceNone, CullFaceBack, CullFaceFront, CullFaceFrontBack, FrontFaceDirectionCW, FrontFaceDirectionCCW, BasicShadowMap, PCFShadowMap, PCFSoftShadowMap, FrontSide, BackSide, DoubleSide, FlatShading, SmoothShading, NoColors, FaceColors, VertexColors, NoBlending, NormalBlending, AdditiveBlending, SubtractiveBlending, MultiplyBlending, CustomBlending, AddEquation, SubtractEquation, ReverseSubtractEquation, MinEquation, MaxEquation, ZeroFactor, OneFactor, SrcColorFactor, OneMinusSrcColorFactor, SrcAlphaFactor, OneMinusSrcAlphaFactor, DstAlphaFactor, OneMinusDstAlphaFactor, DstColorFactor, OneMinusDstColorFactor, SrcAlphaSaturateFactor, NeverDepth, AlwaysDepth, LessDepth, LessEqualDepth, EqualDepth, GreaterEqualDepth, GreaterDepth, NotEqualDepth, MultiplyOperation, MixOperation, AddOperation, NoToneMapping, LinearToneMapping, ReinhardToneMapping, Uncharted2ToneMapping, CineonToneMapping, UVMapping, CubeReflectionMapping, CubeRefractionMapping, EquirectangularReflectionMapping, EquirectangularRefractionMapping, SphericalReflectionMapping, CubeUVReflectionMapping, CubeUVRefractionMapping, RepeatWrapping, ClampToEdgeWrapping, MirroredRepeatWrapping, NearestFilter, NearestMipMapNearestFilter, NearestMipMapLinearFilter, LinearFilter, LinearMipMapNearestFilter, LinearMipMapLinearFilter, UnsignedByteType, ByteType, ShortType, UnsignedShortType, IntType, UnsignedIntType, FloatType, HalfFloatType, UnsignedShort4444Type, UnsignedShort5551Type, UnsignedShort565Type, UnsignedInt248Type, AlphaFormat, RGBFormat, RGBAFormat, LuminanceFormat, LuminanceAlphaFormat, RGBEFormat, DepthFormat, DepthStencilFormat, RGB_S3TC_DXT1_Format, RGBA_S3TC_DXT1_Format, RGBA_S3TC_DXT3_Format, RGBA_S3TC_DXT5_Format, RGB_PVRTC_4BPPV1_Format, RGB_PVRTC_2BPPV1_Format, RGBA_PVRTC_4BPPV1_Format, RGBA_PVRTC_2BPPV1_Format, RGB_ETC1_Format, RGBA_ASTC_4x4_Format, RGBA_ASTC_5x4_Format, RGBA_ASTC_5x5_Format, RGBA_ASTC_6x5_Format, RGBA_ASTC_6x6_Format, RGBA_ASTC_8x5_Format, RGBA_ASTC_8x6_Format, RGBA_ASTC_8x8_Format, RGBA_ASTC_10x5_Format, RGBA_ASTC_10x6_Format, RGBA_ASTC_10x8_Format, RGBA_ASTC_10x10_Format, RGBA_ASTC_12x10_Format, RGBA_ASTC_12x12_Format, LoopOnce, LoopRepeat, LoopPingPong, InterpolateDiscrete, InterpolateLinear, InterpolateSmooth, ZeroCurvatureEnding, ZeroSlopeEnding, WrapAroundEnding, TrianglesDrawMode, TriangleStripDrawMode, TriangleFanDrawMode, LinearEncoding, sRGBEncoding, GammaEncoding, RGBEEncoding, LogLuvEncoding, RGBM7Encoding, RGBM16Encoding, RGBDEncoding, BasicDepthPacking, RGBADepthPacking, FloatDepthPacking };

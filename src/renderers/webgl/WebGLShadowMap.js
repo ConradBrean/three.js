@@ -61,6 +61,8 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 
 	this.type = PCFShadowMap;
 
+	this.onBeforeSceneRender = function(){};
+
 	this.render = function ( lights, scene, camera ) {
 
 		if ( scope.enabled === false ) return;
@@ -233,7 +235,7 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 				_frustum.setFromMatrix( _projScreenMatrix );
 
 				// set object matrices & frustum culling
-
+				this.onBeforeSceneRender(shadowCamera);
 				renderObject( scene, camera, shadowCamera, isPointLight );
 
 			}
@@ -430,7 +432,7 @@ function WebGLShadowMap( _renderer, _objects, maxTextureSize ) {
 
 				} else */ if ( material.visible ) {
 
-					var depthMaterial = object.depthMaterial || getDepthMaterial( object, material, isPointLight, _lightPositionWorld, shadowCamera.near, shadowCamera.far );
+					var depthMaterial = getDepthMaterial( object, material, isPointLight, _lightPositionWorld, shadowCamera.near, shadowCamera.far );
 					_renderer.renderBufferDirect( shadowCamera, null, geometry, depthMaterial, object, null );
 
 				}
