@@ -16,13 +16,13 @@ function WebGLObjects( geometries, infoRender ) {
 		// Update once per frame
 
 		if ( updateList[ buffergeometry.id ] !== frame ) {
-
+			/*
 			if ( geometry.isGeometry ) {
 
 				buffergeometry.updateFromObject( object );
 
 			}
-
+			*/
 			geometries.update( buffergeometry );
 
 			updateList[ buffergeometry.id ] = frame;
