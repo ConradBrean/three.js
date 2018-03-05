@@ -374,16 +374,20 @@ function WebGLProgram( renderer, extensions, code, material, shader, parameters 
 			parameters.logarithmicDepthBuffer ? '#define USE_LOGDEPTHBUF' : '',
 			parameters.logarithmicDepthBuffer && extensions.get( 'EXT_frag_depth' ) ? '#define USE_LOGDEPTHBUF_EXT' : '',
 
+			'#ifndef CUSTOM_STD_UNIFORMS',
 			'uniform mat4 modelMatrix;',
 			'uniform mat4 modelViewMatrix;',
 			'uniform mat4 projectionMatrix;',
 			'uniform mat4 viewMatrix;',
 			'uniform mat3 normalMatrix;',
 			'uniform vec3 cameraPosition;',
+			'#endif',
 
+			'#ifndef CUSTOM_STD_ATTRIBUTES',
 			'attribute vec3 position;',
 			'attribute vec3 normal;',
 			'attribute vec2 uv;',
+			'#endif',
 
 			'#ifdef USE_COLOR',
 
