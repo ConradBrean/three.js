@@ -12,19 +12,14 @@ export { CubeTexture } from './textures/CubeTexture.js';
 export { DepthTexture } from './textures/DepthTexture.js';
 export { Texture } from './textures/Texture.js';
 
-export { PlaneGeometry, PlaneBufferGeometry } from './geometries/PlaneGeometry.js';
-export { ShapeGeometry, ShapeBufferGeometry } from './geometries/ShapeGeometry.js';
-export { ExtrudeGeometry, ExtrudeBufferGeometry } from './geometries/ExtrudeGeometry.js';
-export { BoxGeometry, BoxBufferGeometry } from './geometries/BoxGeometry.js';
+export { PlaneBufferGeometry } from './geometries/PlaneGeometry.js';
+export { BoxBufferGeometry } from './geometries/BoxGeometry.js';
 export { CircleBufferGeometry } from './geometries/CircleGeometry.js';
 export { RingBufferGeometry } from './geometries/RingGeometry.js';
 
-export { ShadowMaterial } from './materials/ShadowMaterial.js';
 export { RawShaderMaterial } from './materials/RawShaderMaterial.js';
 export { ShaderMaterial } from './materials/ShaderMaterial.js';
-export { MeshDepthMaterial } from './materials/MeshDepthMaterial.js';
 export { MeshBasicMaterial } from './materials/MeshBasicMaterial.js';
-export { LineDashedMaterial } from './materials/LineDashedMaterial.js';
 export { LineBasicMaterial } from './materials/LineBasicMaterial.js';
 export { Material } from './materials/Material.js';
 
@@ -42,7 +37,6 @@ export { OrthographicCamera } from './cameras/OrthographicCamera.js';
 export { Uniform } from './core/Uniform.js';
 export { InstancedBufferGeometry } from './core/InstancedBufferGeometry.js';
 export { BufferGeometry } from './core/BufferGeometry.js';
-export { Geometry } from './core/Geometry.js';
 export { InstancedBufferAttribute } from './core/InstancedBufferAttribute.js';
 export * from './core/BufferAttribute.js';
 export { Face3 } from './core/Face3.js';
