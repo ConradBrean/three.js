@@ -64,8 +64,9 @@ function WebGLGeometries( gl, attributes, infoMemory ) {
 
 		if ( buffergeometry ) return buffergeometry;
 
-		geometry.addEventListener( 'dispose', onGeometryDispose );
-
+		geometry.addEventListener('dispose', onGeometryDispose);
+		buffergeometry = geometry;
+		/*
 		if ( geometry.isBufferGeometry ) {
 
 			buffergeometry = geometry;
@@ -81,7 +82,7 @@ function WebGLGeometries( gl, attributes, infoMemory ) {
 			buffergeometry = geometry._bufferGeometry;
 
 		}
-
+		*/
 		geometries[ geometry.id ] = buffergeometry;
 
 		infoMemory.geometries ++;

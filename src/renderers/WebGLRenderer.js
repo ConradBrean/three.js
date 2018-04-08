@@ -719,7 +719,7 @@ function WebGLRenderer( parameters ) {
 		}
 	  
 		var program = _currentProgram;
-		var geometryProgram = geometry.id * 1000 + program.id  * 2 + ( material.wireframe === true ? 1 : 0);
+		var geometryProgram = geometry.id * 512 + program.id  * 2 + ( material.wireframe === true ? 1 : 0);
 
 		var updateBuffers = false;
 
@@ -1294,8 +1294,8 @@ function WebGLRenderer( parameters ) {
 		state.setPolygonOffset(false);
 	};
 
-	this.getWebglObjects = function () {
-		return objects;
+	this.getWebglGeometries = function () {
+		return geometries;
 	}
 
 	/*
