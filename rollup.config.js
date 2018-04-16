@@ -52,7 +52,7 @@ export default [{
 	output: [
 		{
 			format: 'es',
-			file: 'build/c_three.module.js'
+			file: '../kreo-engine/src/3rdParty/three.js'
 		}
 	]
 }];
