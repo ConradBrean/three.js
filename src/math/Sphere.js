@@ -5,7 +5,10 @@ import { Vector3 } from './Vector3.js';
  * @author bhouston / http://clara.io
  * @author mrdoob / http://mrdoob.com/
  */
-
+/** @constructor 
+ * @param {Object=} center
+ * @param {number=} radius
+*/
 function Sphere( center, radius ) {
 
 	this.center = ( center !== undefined ) ? center : new Vector3();

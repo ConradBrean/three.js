@@ -4,6 +4,10 @@ import { Vector2 } from './Vector2.js';
  * @author bhouston / http://clara.io
  */
 
+/** @constructor 
+ * @param {Object=} min
+ * @param {Object=} max
+*/
 function Box2( min, max ) {
 
 	this.min = ( min !== undefined ) ? min : new Vector2( + Infinity, + Infinity );

@@ -4,7 +4,10 @@ import { Vector3 } from './Vector3.js';
 /**
  * @author bhouston / http://clara.io
  */
-
+/** @constructor 
+ * @param {Object=} normal
+ * @param {number=} constant
+*/
 function Plane( normal, constant ) {
 
 	// normal is assumed to be normalized

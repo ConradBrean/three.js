@@ -534,6 +534,11 @@ function parseUniform( activeInfo, addr, container ) {
 
 // Root Container
 
+/** @constructor 
+ * @param {Object} gl
+ * @param {Object} program
+ * @param {Object} renderer
+*/
 function WebGLUniforms( gl, program, renderer ) {
 
 	UniformContainer.call( this );

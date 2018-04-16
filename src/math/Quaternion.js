@@ -6,7 +6,12 @@ import { Vector3 } from './Vector3.js';
  * @author WestLangley / http://github.com/WestLangley
  * @author bhouston / http://clara.io
  */
-
+/** @constructor 
+ * @param {number=} x
+ * @param {number=} y
+ * @param {number=} z
+ * @param {number=} w
+*/
 function Quaternion( x, y, z, w ) {
 
 	this._x = x || 0;

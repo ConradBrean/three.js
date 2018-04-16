@@ -39,6 +39,9 @@ import { WebGLRenderStates } from './webgl/WebGLRenderStates.js';
  * @author tschw
  */
 
+/** @constructor 
+ * @param {Object=} parameters
+*/
 function WebGLRenderer( parameters ) {
 
 	console.log( 'THREE.WebGLRenderer', REVISION );

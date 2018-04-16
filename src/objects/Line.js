@@ -11,7 +11,11 @@ import { Float32BufferAttribute } from '../core/BufferAttribute'
 /**
  * @author mrdoob / http://mrdoob.com/
  */
-
+/** @constructor 
+ * @param {Object=} geometry
+ * @param {Object=} material
+ * @param {number=} mode
+*/
 function Line( geometry, material, mode ) {
 
 	if ( mode === 1 ) {

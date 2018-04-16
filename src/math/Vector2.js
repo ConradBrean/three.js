@@ -4,7 +4,10 @@
  * @author egraether / http://egraether.com/
  * @author zz85 / http://www.lab4games.net/zz85/blog
  */
-
+/** @constructor 
+ * @param {number=} x
+ * @param {number=} y
+*/
 function Vector2( x, y ) {
 
 	this.x = x || 0;

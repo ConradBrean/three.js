@@ -6,7 +6,7 @@ import { Vector3 } from './Vector3.js';
  * @author bhouston / http://clara.io
  * @author tschw
  */
-
+ /** @constructor */
 function Matrix3() {
 
 	this.elements = [

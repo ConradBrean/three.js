@@ -20,6 +20,7 @@
  * @author tschw
  */
 
+ /** @constructor */
 function Interpolant( parameterPositions, sampleValues, sampleSize, resultBuffer ) {
 
 	this.parameterPositions = parameterPositions;

@@ -5,7 +5,10 @@ import { Sphere } from './Sphere.js';
  * @author bhouston / http://clara.io
  * @author WestLangley / http://github.com/WestLangley
  */
-
+/** @constructor 
+ * @param {Object=} min
+ * @param {Object=} max
+*/
 function Box3( min, max ) {
 
 	this.min = ( min !== undefined ) ? min : new Vector3( + Infinity, + Infinity, + Infinity );

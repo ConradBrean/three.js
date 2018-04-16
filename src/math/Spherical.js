@@ -9,7 +9,11 @@ import { _Math } from './Math.js';
  * The poles (phi) are at the positive and negative y axis.
  * The equator starts at positive z.
  */
-
+/** @constructor 
+ * @param {number=} radius
+ * @param {number=} phi
+ * @param {number=} theta
+*/
 function Spherical( radius, phi, theta ) {
 
 	this.radius = ( radius !== undefined ) ? radius : 1.0;

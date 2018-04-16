@@ -10,7 +10,7 @@ var UniformsUtils = {
 
 		for ( var u = 0; u < uniforms.length; u ++ ) {
 
-			var tmp = this.clone( uniforms[ u ] );
+			var tmp = UniformsUtils.clone( uniforms[ u ] );
 
 			for ( var p in tmp ) {
 

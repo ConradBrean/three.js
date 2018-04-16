@@ -3,7 +3,10 @@ import { Vector3 } from './Vector3.js';
 /**
  * @author bhouston / http://clara.io
  */
-
+/** @constructor 
+ * @param {Object=} origin
+ * @param {Object=} direction
+*/
 function Ray( origin, direction ) {
 
 	this.origin = ( origin !== undefined ) ? origin : new Vector3();

@@ -10,7 +10,11 @@ import { Quaternion } from './Quaternion.js';
  * @author egraether / http://egraether.com/
  * @author WestLangley / http://github.com/WestLangley
  */
-
+/** @constructor 
+ * @param {number=} x
+ * @param {number=} y
+ * @param {number=} z
+*/
 function Vector3( x, y, z ) {
 
 	this.x = x || 0;

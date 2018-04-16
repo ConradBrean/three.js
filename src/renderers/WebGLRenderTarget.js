@@ -15,6 +15,11 @@ import { _Math } from '../math/Math.js';
  * Texture parameters for an auto-generated target texture
  * depthBuffer/stencilBuffer: Booleans to indicate if we should generate these buffers
 */
+/** @constructor 
+ * @param {number} x
+ * @param {number} y
+ * @param {Object=} options
+*/
 function WebGLRenderTarget( width, height, options ) {
 
 	this.uuid = _Math.generateUUID();

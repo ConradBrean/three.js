@@ -16,7 +16,10 @@ import { BufferGeometry } from '../core/BufferGeometry.js';
  * @author mikael emtinger / http://gomo.se/
  * @author jonobr1 / http://jonobr1.com/
  */
-
+/** @constructor 
+ * @param {Object=} geometry
+ * @param {Object=} material
+*/
 function Mesh( geometry, material ) {
 
 	Object3D.call( this );

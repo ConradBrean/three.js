@@ -6,7 +6,11 @@ import { Plane } from './Plane.js';
  * @author bhouston / http://clara.io
  * @author mrdoob / http://mrdoob.com/
  */
-
+/** @constructor 
+ * @param {Object=} a
+ * @param {Object=} b
+ * @param {Object=} c
+*/
 function Triangle( a, b, c ) {
 
 	this.a = ( a !== undefined ) ? a : new Vector3();

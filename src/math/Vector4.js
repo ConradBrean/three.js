@@ -5,7 +5,12 @@
  * @author egraether / http://egraether.com/
  * @author WestLangley / http://github.com/WestLangley
  */
-
+/** @constructor 
+ * @param {number=} x
+ * @param {number=} y
+ * @param {number=} z
+ * @param {number=} w
+*/
 function Vector4( x, y, z, w ) {
 
 	this.x = x || 0;

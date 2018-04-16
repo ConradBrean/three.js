@@ -103,6 +103,7 @@ function UniformsCache() {
 
 }
 
+/** @constructor */
 function WebGLLights( stateId ) {
 
 	var cache = new UniformsCache();

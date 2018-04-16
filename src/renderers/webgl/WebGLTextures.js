@@ -5,6 +5,16 @@
 import { LinearFilter, NearestFilter, RGBFormat, RGBAFormat, DepthFormat, DepthStencilFormat, UnsignedShortType, UnsignedIntType, UnsignedInt248Type, FloatType, HalfFloatType, ClampToEdgeWrapping, NearestMipMapLinearFilter, NearestMipMapNearestFilter } from '../../constants.js';
 import { _Math } from '../../math/Math.js';
 
+/** @constructor 
+ * @param {Object} _gl
+ * @param {Object} extensions
+ * @param {Object} state
+ * @param {Object} properties
+ * @param {Object} capabilities
+ * @param {Object} utils
+ * @param {Object} infoMemory
+ * @param {Object} infoRender
+*/
 function WebGLTextures( _gl, extensions, state, properties, capabilities, utils, infoMemory, infoRender ) {
 
 	var _isWebGL2 = ( typeof WebGL2RenderingContext !== 'undefined' && _gl instanceof WebGL2RenderingContext );
