@@ -10,33 +10,33 @@ var Cache = {
 
 	add: function ( key, file ) {
 
-		if ( this.enabled === false ) return;
+		if ( Cache.enabled === false ) return;
 
 		// console.log( 'THREE.Cache', 'Adding key:', key );
 
-		this.files[ key ] = file;
+		Cache.files[ key ] = file;
 
 	},
 
 	get: function ( key ) {
 
-		if ( this.enabled === false ) return;
+		if ( Cache.enabled === false ) return;
 
 		// console.log( 'THREE.Cache', 'Checking key:', key );
 
-		return this.files[ key ];
+		return Cache.files[ key ];
 
 	},
 
 	remove: function ( key ) {
 
-		delete this.files[ key ];
+		delete Cache.files[ key ];
 
 	},
 
 	clear: function () {
 
-		this.files = {};
+		Cache.files = {};
 
 	}
 

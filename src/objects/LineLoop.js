@@ -3,7 +3,7 @@ import { Line } from './Line.js';
 /**
  * @author mgreter / http://github.com/mgreter
  */
-
+/** @constructor */
 function LineLoop( geometry, material ) {
 
 	Line.call( this, geometry, material );
