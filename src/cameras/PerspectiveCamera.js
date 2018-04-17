@@ -8,7 +8,12 @@ import { _Math } from '../math/Math.js';
  * @author zz85 / http://www.lab4games.net/zz85/blog
  * @author tschw
  */
-
+/** @constructor 
+ * @param {number=} fov
+ * @param {number=} aspect
+ * @param {number=} near
+ * @param {number=} far
+*/
 function PerspectiveCamera( fov, aspect, near, far ) {
 
 	Camera.call( this );

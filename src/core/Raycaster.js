@@ -5,7 +5,12 @@ import { Ray } from '../math/Ray.js';
  * @author bhouston / http://clara.io/
  * @author stephomi / http://stephaneginier.com/
  */
-
+/** @constructor 
+ * @param {Object=} origin
+ * @param {Object=} direction
+ * @param {number=} near
+ * @param {number=} far
+*/
 function Raycaster( origin, direction, near, far ) {
 
 	this.ray = new Ray( origin, direction );

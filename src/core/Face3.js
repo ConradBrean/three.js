@@ -5,7 +5,14 @@ import { Vector3 } from '../math/Vector3.js';
  * @author mrdoob / http://mrdoob.com/
  * @author alteredq / http://alteredqualia.com/
  */
-
+/** @constructor 
+ * @param {Object} a
+ * @param {Object} b
+ * @param {Object} c
+ * @param {Object=} normal
+ * @param {Object=} color
+ * @param {number=} materialIndex
+*/
 function Face3( a, b, c, normal, color, materialIndex ) {
 
 	this.a = a;
