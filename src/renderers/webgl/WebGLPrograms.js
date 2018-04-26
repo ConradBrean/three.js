@@ -10,19 +10,19 @@ function WebGLPrograms( renderer, extensions, capabilities ) {
 	var programs = [];
 
 	var shaderIDs = {
-		MeshDepthMaterial: 'depth',
-		MeshDistanceMaterial: 'distanceRGBA',
-		MeshNormalMaterial: 'normal',
-		MeshBasicMaterial: 'basic',
-		MeshLambertMaterial: 'lambert',
-		MeshPhongMaterial: 'phong',
-		MeshToonMaterial: 'phong',
-		MeshStandardMaterial: 'physical',
-		MeshPhysicalMaterial: 'physical',
-		LineBasicMaterial: 'basic',
-		LineDashedMaterial: 'dashed',
-		PointsMaterial: 'points',
-		ShadowMaterial: 'shadow'
+		'MeshDepthMaterial': 'depth',
+		'MeshDistanceMaterial': 'distanceRGBA',
+		'MeshNormalMaterial': 'normal',
+		'MeshBasicMaterial': 'basic',
+		'MeshLambertMaterial': 'lambert',
+		'MeshPhongMaterial': 'phong',
+		'MeshToonMaterial': 'phong',
+		'MeshStandardMaterial': 'physical',
+		'MeshPhysicalMaterial': 'physical',
+		'LineBasicMaterial': 'basic',
+		'LineDashedMaterial': 'dashed',
+		'PointsMaterial': 'points',
+		'ShadowMaterial': 'shadow'
 	};
 
 	var parameterNames = [

@@ -201,7 +201,8 @@ function unrollLoops( string ) {
 	return string.replace( pattern, replace );
 
 }
-
+/** @constructor 
+*/
 function WebGLProgram( renderer, extensions, code, material, shader, parameters ) {
 
 	var gl = renderer.context;

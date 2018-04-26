@@ -12,7 +12,7 @@ import { Color } from '../../math/Color.js';
 
 var ShaderLib = {
 
-	basic: {
+	'basic': {
 
 		uniforms: UniformsUtils.merge( [
 			UniformsLib.common,
@@ -133,7 +133,7 @@ var ShaderLib = {
 
 	},
 
-	depth: {
+	'depth': {
 
 		uniforms: UniformsUtils.merge( [
 			UniformsLib.common,

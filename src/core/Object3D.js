@@ -20,8 +20,7 @@ var object3DId = 0;
 function generateObject3dId(){
 	return object3DId ++;
 }
-/** @constructor 
-*/
+
 function Object3D() {
 
 	Object.defineProperty( this, 'id', { value: generateObject3dId() } );

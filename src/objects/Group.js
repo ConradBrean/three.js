@@ -3,8 +3,7 @@ import { Object3D } from '../core/Object3D.js';
 /**
  * @author mrdoob / http://mrdoob.com/
  */
-/** @constructor 
-*/
+
 function Group() {
 
 	Object3D.call( this );
