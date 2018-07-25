@@ -41,56 +41,11 @@
 		<script src="js/postprocessing/MaskPass.js"></script>
 		<script src="js/postprocessing/ShaderPass.js"></script>
 
-		<!-- NodeLibrary -->
-		<script src="js/nodes/GLNode.js"></script>
-		<script src="js/nodes/RawNode.js"></script>
-		<script src="js/nodes/TempNode.js"></script>
-		<script src="js/nodes/InputNode.js"></script>
-		<script src="js/nodes/ConstNode.js"></script>
-		<script src="js/nodes/FunctionNode.js"></script>
-		<script src="js/nodes/FunctionCallNode.js"></script>
-		<script src="js/nodes/NodeBuilder.js"></script>
-		<script src="js/nodes/NodeLib.js"></script>
-		<script src="js/nodes/NodeFrame.js"></script>
-		<script src="js/nodes/NodeMaterial.js"></script>
+		<script type="module">
 
-		<!-- Accessors -->
-		<script src="js/nodes/accessors/PositionNode.js"></script>
-		<script src="js/nodes/accessors/NormalNode.js"></script>
-		<script src="js/nodes/accessors/UVNode.js"></script>
-		<script src="js/nodes/accessors/ColorsNode.js"></script>
-
-		<!-- Inputs -->
-		<script src="js/nodes/inputs/IntNode.js"></script>
-		<script src="js/nodes/inputs/FloatNode.js"></script>
-		<script src="js/nodes/inputs/ColorNode.js"></script>
-		<script src="js/nodes/inputs/Vector2Node.js"></script>
-		<script src="js/nodes/inputs/Vector3Node.js"></script>
-		<script src="js/nodes/inputs/Vector4Node.js"></script>
-		<script src="js/nodes/inputs/TextureNode.js"></script>
-		<script src="js/nodes/inputs/CubeTextureNode.js"></script>
-		<script src="js/nodes/inputs/ScreenNode.js"></script>
-
-		<!-- Math -->
-		<script src="js/nodes/math/Math1Node.js"></script>
-		<script src="js/nodes/math/Math2Node.js"></script>
-		<script src="js/nodes/math/Math3Node.js"></script>
-		<script src="js/nodes/math/OperatorNode.js"></script>
-
-		<!-- Utils -->
-		<script src="js/nodes/utils/SwitchNode.js"></script>
-		<script src="js/nodes/utils/JoinNode.js"></script>
-		<script src="js/nodes/utils/TimerNode.js"></script>
-		<script src="js/nodes/utils/ColorAdjustmentNode.js"></script>
-		<script src="js/nodes/utils/BlurNode.js"></script>
-
-		<!-- Post-Processing -->
-		<script src="js/nodes/postprocessing/NodePass.js"></script>
-
-		<!-- NodeMaterial Loader -->
-		<script src="js/loaders/NodeMaterialLoader.js"></script>
-
-		<script>
+			import './js/nodes/THREE.Nodes.js';
+			import { NodePass } from './js/nodes/postprocessing/NodePass.js';
+			import './js/loaders/NodeMaterialLoader.js';
 
 			var camera, scene, renderer, composer;
 			var object, light, nodepass;
@@ -153,6 +108,8 @@
 
 				} else if ( typeof value == 'object' ) {
 
+					param.blend = value[ Object.keys( value )[ 0 ] ];
+
 					node = gui.add( param, name, value ).onChange( function () {
 
 						callback( param[ name ] );
@@ -201,33 +158,33 @@
 
 						// GUI
 
-						addGui( 'hue', hue.number, function ( val ) {
+						addGui( 'hue', hue.value, function ( val ) {
 
-							hue.number = val;
+							hue.value = val;
 
 						}, false, 0, Math.PI * 2 );
 
-						addGui( 'saturation', sataturation.number, function ( val ) {
+						addGui( 'saturation', sataturation.value, function ( val ) {
 
-							sataturation.number = val;
+							sataturation.value = val;
 
 						}, false, 0, 2 );
 
-						addGui( 'vibrance', vibrance.number, function ( val ) {
+						addGui( 'vibrance', vibrance.value, function ( val ) {
 
-							vibrance.number = val;
+							vibrance.value = val;
 
 						}, false, - 1, 1 );
 
-						addGui( 'brightness', brightness.number, function ( val ) {
+						addGui( 'brightness', brightness.value, function ( val ) {
 
-							brightness.number = val;
+							brightness.value = val;
 
 						}, false, 0, .5 );
 
-						addGui( 'contrast', contrast.number, function ( val ) {
+						addGui( 'contrast', contrast.value, function ( val ) {
 
-							contrast.number = val;
+							contrast.value = val;
 
 						}, false, 0, 2 );
 
@@ -257,9 +214,9 @@
 
 						}, true );
 
-						addGui( 'fade', percent.number, function ( val ) {
+						addGui( 'fade', percent.value, function ( val ) {
 
-							percent.number = val;
+							percent.value = val;
 
 						}, false, 0, 1 );
 
@@ -285,9 +242,9 @@
 
 						// GUI
 
-						addGui( 'alpha', alpha.number, function ( val ) {
+						addGui( 'alpha', alpha.value, function ( val ) {
 
-							alpha.number = val;
+							alpha.value = val;
 
 						}, false, 0, 1 );
 
@@ -316,7 +273,7 @@
 
 							multiply.op = val;
 
-							nodepass.build();
+							nodepass.needsUpdate = true;
 
 						} );
 
@@ -330,12 +287,12 @@
 						var sat = new THREE.FloatNode( 0 );
 
 						var satrgb = new THREE.FunctionNode( [
-							"vec3 satrgb(vec3 rgb, float adjustment) {",
-							//"	const vec3 W = vec3(0.2125, 0.7154, 0.0721);", // LUMA
-							"	vec3 intensity = vec3(dot(rgb, LUMA));",
-							"	return mix(intensity, rgb, adjustment);",
+							"vec3 satrgb( vec3 rgb, float adjustment ) {",
+							// include luminance function from LuminanceNode
+							"	vec3 intensity = vec3( luminance( rgb ) );",
+							"	return mix( intensity, rgb, adjustment );",
 							"}"
-						].join( "\n" ) );
+						].join( "\n" ), [ THREE.LuminanceNode.Nodes.luminance ] );
 
 						var saturation = new THREE.FunctionCallNode( satrgb );
 						saturation.inputs.rgb = screen;
@@ -345,9 +302,9 @@
 
 						// GUI
 
-						addGui( 'saturation', sat.number, function ( val ) {
+						addGui( 'saturation', sat.value, function ( val ) {
 
-							sat.number = val;
+							sat.value = val;
 
 						}, false, 0, 2 );
 
@@ -398,9 +355,9 @@
 
 						// GUI
 
-						addGui( 'scale', scale.number, function ( val ) {
+						addGui( 'scale', scale.value, function ( val ) {
 
-							scale.number = val;
+							scale.value = val;
 
 						}, false, 0, 1 );
 
@@ -408,7 +365,7 @@
 
 							offsetNormal.a = val ? normalXYFlip : normalXY;
 
-							nodepass.build();
+							nodepass.needsUpdate = true;
 
 						} );
 
@@ -433,7 +390,7 @@
 							THREE.Math1Node.FLOOR
 						);
 
-						var coord = new THREE.OperatorNode(
+						var mosaicUV = new THREE.OperatorNode(
 							blocksSize,
 							scale,
 							THREE.OperatorNode.DIV
@@ -441,7 +398,7 @@
 
 						var fadeScreen = new THREE.Math3Node(
 							uv,
-							coord,
+							mosaicUV,
 							fade,
 							THREE.Math3Node.MIX
 						);
@@ -450,23 +407,23 @@
 
 						// GUI
 
-						addGui( 'scale', scale.number, function ( val ) {
+						addGui( 'scale', scale.value, function ( val ) {
 
-							scale.number = val;
+							scale.value = val;
 
 						}, false, 16, 1024 );
 
-						addGui( 'fade', fade.number, function ( val ) {
+						addGui( 'fade', fade.value, function ( val ) {
 
-							fade.number = val;
+							fade.value = val;
 
 						}, false, 0, 1 );
 
-						addGui( 'mask', true, function ( val ) {
+						addGui( 'mask', false, function ( val ) {
 
-							fadeCoord.c = val ? maskAlpha : fade;
+							fadeScreen.c = val ? new THREE.TextureNode( lensflare2 ) : fade;
 
-							nodepass.build();
+							nodepass.needsUpdate = true;
 
 						} );
 
@@ -501,7 +458,7 @@
 
 				}
 
-				nodepass.build();
+				nodepass.needsUpdate = true;
 
 				// test serialization
 /*
@@ -512,7 +469,6 @@
 				var json = nodepass.toJSON();
 
 				nodepass.value = new THREE.NodeMaterialLoader( null, library ).parse( json ).value;
-				nodepass.build();
 */
 			}
 
@@ -534,7 +490,7 @@
 				object = new THREE.Object3D();
 				scene.add( object );
 
-				var geometry = new THREE.SphereGeometry( 1, 4, 4 );
+				var geometry = new THREE.SphereBufferGeometry( 1, 4, 4 );
 
 				for ( var i = 0; i < 100; i ++ ) {
 
@@ -559,7 +515,7 @@
 				composer = new THREE.EffectComposer( renderer );
 				composer.addPass( new THREE.RenderPass( scene, camera ) );
 
-				nodepass = new THREE.NodePass();
+				nodepass = new NodePass();
 				nodepass.renderToScreen = true;
 
 				composer.addPass( nodepass );

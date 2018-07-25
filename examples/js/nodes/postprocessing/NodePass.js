@@ -2,7 +2,12 @@
  * @author sunag / http://www.sunag.com.br/
  */
 
-THREE.NodePass = function () {
+import { NodeUtils } from '../core/NodeUtils.js';
+import { NodeMaterial } from '../materials/NodeMaterial.js';
+import { RawNode } from '../materials/nodes/RawNode.js';
+import { ScreenNode } from '../inputs/ScreenNode.js';
+
+function NodePass() {
 
 	THREE.ShaderPass.call( this );
 
@@ -13,30 +18,44 @@ THREE.NodePass = function () {
 
 	this.textureID = 'renderTexture';
 
-	this.fragment = new THREE.RawNode( new THREE.ScreenNode() );
+	this.fragment = new RawNode( new ScreenNode() );
 
-	this.node = new THREE.NodeMaterial();
+	this.node = new NodeMaterial();
 	this.node.fragment = this.fragment;
 
-	this.build();
+	this.needsUpdate = true;
 
 };
 
-THREE.NodePass.prototype = Object.create( THREE.ShaderPass.prototype );
-THREE.NodePass.prototype.constructor = THREE.NodePass;
+NodePass.prototype = Object.create( THREE.ShaderPass.prototype );
+NodePass.prototype.constructor = NodePass;
 
-THREE.NodeMaterial.addShortcuts( THREE.NodePass.prototype, 'fragment', [ 'value' ] );
+NodeUtils.addShortcuts( NodePass.prototype, 'fragment', [ 'value' ] );
 
-THREE.NodePass.prototype.build = function () {
+NodePass.prototype.render = function () {
 
-	this.node.build();
+	if ( this.needsUpdate ) {
+
+		this.node.dispose();
+
+		this.needsUpdate = false;
+
+	}
 
 	this.uniforms = this.node.uniforms;
 	this.material = this.node;
 
+	THREE.ShaderPass.prototype.render.apply( this, arguments );
+
 };
 
-THREE.NodePass.prototype.toJSON = function ( meta ) {
+NodePass.prototype.copy = function ( source ) {
+	
+	this.value = source.value;
+	
+};
+
+NodePass.prototype.toJSON = function ( meta ) {
 
 	var isRootObject = ( meta === undefined || typeof meta === 'string' );
 
@@ -72,3 +91,5 @@ THREE.NodePass.prototype.toJSON = function ( meta ) {
 	return meta;
 
 };
+
+export { NodePass };

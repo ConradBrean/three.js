@@ -16,7 +16,7 @@ import { BufferGeometry } from '../core/BufferGeometry.js';
  * @author mikael emtinger / http://gomo.se/
  * @author jonobr1 / http://jonobr1.com/
  */
-/** @constructor 
+/** @constructor
  * @param {Object=} geometry
  * @param {Object=} material
 */
@@ -25,7 +25,7 @@ function Mesh( geometry, material ) {
 	Object3D.call( this );
 
 	this.type = 'Mesh';
-	this.drawRange = { start: 0, count:Infinity }
+	this.drawRange = { start: 0, count: Infinity };
 
 	this.geometry = geometry !== undefined ? geometry : new BufferGeometry();
 	this.material = material !== undefined ? material : new MeshBasicMaterial( { color: Math.random() * 0xffffff } );
@@ -34,6 +34,7 @@ function Mesh( geometry, material ) {
 	/*
 	this.updateMorphTargets();
 	*/
+
 }
 
 Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
@@ -151,7 +152,7 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 
 		function uvIntersection( point, p1, p2, p3, uv1, uv2, uv3 ) {
 
-			Triangle.barycoordFromPoint( point, p1, p2, p3, barycoord );
+			Triangle.getBarycoord( point, p1, p2, p3, barycoord );
 
 			uv1.multiplyScalar( barycoord.x );
 			uv2.multiplyScalar( barycoord.y );
@@ -194,13 +195,13 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 
 		}
 
-		function checkBufferGeometryIntersection( object, raycaster, ray, position, uv, a, b, c ) {
+		function checkBufferGeometryIntersection( object, material, raycaster, ray, position, uv, a, b, c ) {
 
 			vA.fromBufferAttribute( position, a );
 			vB.fromBufferAttribute( position, b );
 			vC.fromBufferAttribute( position, c );
 
-			var intersection = checkIntersection( object, object.material, raycaster, ray, vA, vB, vC, intersectionPoint );
+			var intersection = checkIntersection( object, material, raycaster, ray, vA, vB, vC, intersectionPoint );
 
 			if ( intersection ) {
 
@@ -214,8 +215,10 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 
 				}
 
-				intersection.face = new Face3( a, b, c, Triangle.normal( vA, vB, vC ) );
-				intersection.faceIndex = a;
+				var face = new Face3( a, b, c );
+				Triangle.getNormal( vA, vB, vC, face.normal );
+
+				intersection.face = face;
 
 			}
 
@@ -261,27 +264,64 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 				var index = geometry.index;
 				var position = geometry.attributes.position;
 				var uv = geometry.attributes.uv;
-				var i, l;
+				// var groups = geometry.groups;
 				var drawRange = geometry.drawRange;
-				var drawStart = Math.max(this.drawRange.start, geometry.drawRange.start);
-				var drawCount = Math.min(this.drawRange.count, geometry.drawRange.count);
+				var i, il;
+				// var group, groupMaterial;
+				var start, end;
 
 				if ( index !== null ) {
 
 					// indexed buffer geometry
-					
-					for ( i = drawStart, l = Math.min(index.count, i + drawCount); i < l; i += 3 ) {
+					/*
+					if ( Array.isArray( material ) ) {
 
-						a = index.getX( i );
-						b = index.getX( i + 1 );
-						c = index.getX( i + 2 );
+						for ( i = 0, il = groups.length; i < il; i ++ ) {
 
-						intersection = checkBufferGeometryIntersection( this, raycaster, ray, position, uv, a, b, c );
+							group = groups[ i ];
+							groupMaterial = material[ group.materialIndex ];
 
-						if ( intersection ) {
+							start = Math.max( group.start, drawRange.start );
+							end = Math.min( ( group.start + group.count ), ( drawRange.start + drawRange.count ) );
 
-							intersection.faceIndex = Math.floor( i / 3 ); // triangle number in indices buffer semantics
-							intersects.push( intersection );
+							for ( j = start, jl = end; j < jl; j += 3 ) {
+
+								a = index.getX( j );
+								b = index.getX( j + 1 );
+								c = index.getX( j + 2 );
+
+								intersection = checkBufferGeometryIntersection( this, groupMaterial, raycaster, ray, position, uv, a, b, c );
+
+								if ( intersection ) {
+
+									intersection.faceIndex = Math.floor( j / 3 ); // triangle number in indexed buffer semantics
+									intersects.push( intersection );
+
+								}
+
+							}
+
+						}
+
+					} else*/ {
+
+						start = Math.max( this.drawRange.start, drawRange.start, 0 );
+						end = Math.min( index.count, ( drawRange.start + drawRange.count ), this.drawRange.count );
+
+						for ( i = start, il = end; i < il; i += 3 ) {
+
+							a = index.getX( i );
+							b = index.getX( i + 1 );
+							c = index.getX( i + 2 );
+
+							intersection = checkBufferGeometryIntersection( this, material, raycaster, ray, position, uv, a, b, c );
+
+							if ( intersection ) {
+
+								intersection.faceIndex = Math.floor( i / 3 ); // triangle number in indexed buffer semantics
+								intersects.push( intersection );
+
+							}
 
 						}
 
@@ -290,19 +330,55 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 				} else if ( position !== undefined ) {
 
 					// non-indexed buffer geometry
+					/*
+					if ( Array.isArray( material ) ) {
 
-					for ( i = drawStart, l = Math.min(position.count, i + drawCount); i < l; i += 3 ) {
+						for ( i = 0, il = groups.length; i < il; i ++ ) {
 
-						a = i;
-						b = i + 1;
-						c = i + 2;
+							group = groups[ i ];
+							groupMaterial = material[ group.materialIndex ];
 
-						intersection = checkBufferGeometryIntersection( this, raycaster, ray, position, uv, a, b, c );
+							start = Math.max( group.start, drawRange.start );
+							end = Math.min( ( group.start + group.count ), ( drawRange.start + drawRange.count ) );
 
-						if ( intersection ) {
+							for ( j = start, jl = end; j < jl; j += 3 ) {
 
-							intersection.index = a; // triangle number in positions buffer semantics
-							intersects.push( intersection );
+								a = j;
+								b = j + 1;
+								c = j + 2;
+
+								intersection = checkBufferGeometryIntersection( this, groupMaterial, raycaster, ray, position, uv, a, b, c );
+
+								if ( intersection ) {
+
+									intersection.faceIndex = Math.floor( j / 3 ); // triangle number in non-indexed buffer semantics
+									intersects.push( intersection );
+
+								}
+
+							}
+
+						}
+
+					} else*/ {
+
+						start = Math.max( 0, drawRange.start );
+						end = Math.min( position.count, ( drawRange.start + drawRange.count ) );
+
+						for ( i = start, il = end; i < il; i += 3 ) {
+
+							a = i;
+							b = i + 1;
+							c = i + 2;
+
+							intersection = checkBufferGeometryIntersection( this, material, raycaster, ray, position, uv, a, b, c );
+
+							if ( intersection ) {
+
+								intersection.faceIndex = Math.floor( i / 3 ); // triangle number in non-indexed buffer semantics
+								intersects.push( intersection );
+
+							}
 
 						}
 
@@ -310,7 +386,11 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 
 				}
 
-			} else if ( geometry.isGeometry ) {
+			} else {
+
+				console.error( 'unknown geometry type', geometry );
+
+			}/* else if ( geometry.isGeometry ) {
 
 				var fvA, fvB, fvC;
 				var isMultiMaterial = Array.isArray( material );
@@ -389,7 +469,7 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 
 				}
 
-			}
+			} */
 
 		};
 

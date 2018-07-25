@@ -4,23 +4,17 @@
 
 import { WebGLLights } from './WebGLLights.js';
 
-var count = 0;
-
 function WebGLRenderState() {
 
-	var id = count ++;
-
-	var lights = new WebGLLights( id );
+	var lights = new WebGLLights();
 
 	var lightsArray = [];
 	var shadowsArray = [];
-	var spritesArray = [];
 
 	function init() {
 
 		lightsArray.length = 0;
 		shadowsArray.length = 0;
-		spritesArray.length = 0;
 
 	}
 
@@ -36,12 +30,6 @@ function WebGLRenderState() {
 
 	}
 
-	function pushSprite( shadowLight ) {
-
-		spritesArray.push( shadowLight );
-
-	}
-
 	function setupLights( camera ) {
 
 		lights.setup( lightsArray, shadowsArray, camera );
@@ -51,7 +39,6 @@ function WebGLRenderState() {
 	var state = {
 		lightsArray: lightsArray,
 		shadowsArray: shadowsArray,
-		spritesArray: spritesArray,
 
 		lights: lights
 	};
@@ -62,8 +49,7 @@ function WebGLRenderState() {
 		setupLights: setupLights,
 
 		pushLight: pushLight,
-		pushShadow: pushShadow,
-		pushSprite: pushSprite
+		pushShadow: pushShadow
 	};
 
 }
