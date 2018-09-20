@@ -94,11 +94,18 @@ function WebGLGeometries( gl, attributes, info ) {
 	function update( geometry ) {
 
 		var index = geometry.index;
+		var edgesIndex = geometry.edgesIndex;
 		var geometryAttributes = geometry.attributes;
 
 		if ( index !== null ) {
 
 			attributes.update( index, gl.ELEMENT_ARRAY_BUFFER );
+
+		}
+
+		if ( edgesIndex ) {
+
+			attributes.update( edgesIndex, gl.ELEMENT_ARRAY_BUFFER );
 
 		}
 

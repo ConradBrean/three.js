@@ -25,7 +25,6 @@ function Mesh( geometry, material ) {
 	Object3D.call( this );
 
 	this.type = 'Mesh';
-	this.drawRange = { start: 0, count: Infinity };
 
 	this.geometry = geometry !== undefined ? geometry : new BufferGeometry();
 	this.material = material !== undefined ? material : new MeshBasicMaterial( { color: Math.random() * 0xffffff } );
@@ -305,8 +304,8 @@ Mesh.prototype = Object.assign( Object.create( Object3D.prototype ), {
 
 					} else*/ {
 
-						start = Math.max( this.drawRange.start, drawRange.start, 0 );
-						end = Math.min( index.count, ( drawRange.start + drawRange.count ), this.drawRange.count );
+						start = Math.max( drawRange.start, 0 );
+						end = Math.min( index.count, ( drawRange.start + drawRange.count ) );
 
 						for ( i = start, il = end; i < il; i += 3 ) {
 

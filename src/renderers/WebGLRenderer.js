@@ -701,7 +701,8 @@ function WebGLRenderer( parameters ) {
 
 		//
 
-		var index = geometry.index;
+		var index = object.isKrLine ? geometry.edgesIndex : geometry.index;
+		
 		var position = geometry.attributes.position;
 		var rangeFactor = 1;
 
@@ -753,26 +754,28 @@ function WebGLRenderer( parameters ) {
 		var rangeStart = geometry.drawRange.start;
 		var rangeCount = geometry.drawRange.count;
 
-		if ( object.isMesh ) {
+		// var groupStart = group !== null ? group.start : 0;
+		// var groupCount = group !== null ? group.count : Infinity;
 
-			rangeStart = Math.max( rangeStart, object.drawRange.start );
-			rangeCount = Math.min( rangeCount, object.drawRange.count );
+		// var drawStart = Math.max( rangeStart, groupStart ) * rangeFactor;
+		// var drawEnd = Math.min( dataCount, rangeStart + rangeCount, groupStart + groupCount ) * rangeFactor;
+		var drawStart = rangeStart * rangeFactor;
+		var drawEnd = Math.min( dataCount, rangeStart + rangeCount ) * rangeFactor;
 
-		}
-
-		var groupStart = group !== null ? group.start : 0;
-		var groupCount = group !== null ? group.count : Infinity;
-
-		var drawStart = Math.max( rangeStart, groupStart ) * rangeFactor;
-		var drawEnd = Math.min( dataCount, rangeStart + rangeCount, groupStart + groupCount ) * rangeFactor;
-
-		var drawCount = Math.max( 0, drawEnd - drawStart );
-
-		if ( drawCount === 0 ) return;
-
-		//
-
-		if ( object.isMesh ) {
+		if (object.isKrMesh) {
+			
+			drawStart = object.drawRange.start;
+			drawEnd = object.drawRange.end;
+			renderer.setMode(_gl.TRIANGLES);
+		
+		} else if ( object.isKrLine ) {
+			
+			drawStart = object.lineDrawRange.start;
+			drawEnd = object.lineDrawRange.end;
+			state.setLineWidth( 1 );
+			renderer.setMode( _gl.LINES );
+			
+		} else if ( object.isMesh ) {
 
 			if ( material.wireframe === true ) {
 
@@ -799,7 +802,6 @@ function WebGLRenderer( parameters ) {
 
 			}
 
-
 		} else if ( object.isLine ) {
 
 			var lineWidth = material.linewidth;
@@ -822,7 +824,7 @@ function WebGLRenderer( parameters ) {
 
 			}
 
-		} else if ( object.isPoints ) {
+		} /* else if ( object.isPoints ) {
 
 			renderer.setMode( _gl.POINTS );
 
@@ -830,6 +832,11 @@ function WebGLRenderer( parameters ) {
 
 			renderer.setMode( _gl.TRIANGLES );
 
+		} */
+
+		const drawCount = drawEnd - drawStart;
+		if (!(drawCount > 0)) {
+			return;
 		}
 
 		if ( geometry && geometry.isInstancedBufferGeometry ) {
