@@ -1879,7 +1879,7 @@ function WebGLRenderer( parameters ) {
 		*/
 
 		if ( refreshMaterial ) {
-
+			/*
 			p_uniforms.setValue( _gl, 'toneMappingExposure', _this.toneMappingExposure );
 			p_uniforms.setValue( _gl, 'toneMappingWhitePoint', _this.toneMappingWhitePoint );
 
@@ -1899,7 +1899,7 @@ function WebGLRenderer( parameters ) {
 			}
 
 			// refresh uniforms common to several materials
-			/*
+			
 			if ( fog && material.fog ) {
 
 				refreshUniformsFog( m_uniforms, fog );
@@ -2004,13 +2004,13 @@ function WebGLRenderer( parameters ) {
 
 		}
 		*/
-
+		/*
 		if ( material.isSpriteMaterial ) {
 
 			p_uniforms.setValue( _gl, 'center', object.center );
 
 		}
-
+		*/
 		// common matrices
 		currentUniforms.updateIfNeeded( 'modelViewMatrix', object.modelViewMatrix, p_uniforms );
 		currentUniforms.updateIfNeeded( 'normalMatrix', object.normalMatrix, p_uniforms );
