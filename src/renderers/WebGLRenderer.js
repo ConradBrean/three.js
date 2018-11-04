@@ -1712,12 +1712,11 @@ function WebGLRenderer( parameters ) {
 			} else if ( material.fog && materialProperties.fog !== fog ) {
 
 				material.needsUpdate = true;
-			*/
 
 			} else if ( material.lights && materialProperties.lightsHash !== lights.state.hash ) {
 
 				material.needsUpdate = true;
-			/*
+			
 			} else if ( materialProperties.numClippingPlanes !== undefined &&
 				( materialProperties.numClippingPlanes !== _clipping.numPlanes ||
 				materialProperties.numIntersection !== _clipping.numIntersection ) ) {
