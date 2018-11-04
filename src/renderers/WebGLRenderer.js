@@ -2014,6 +2014,9 @@ function WebGLRenderer( parameters ) {
 		currentUniforms.updateIfNeeded( 'modelViewMatrix', object.modelViewMatrix, p_uniforms );
 		currentUniforms.updateIfNeeded( 'normalMatrix', object.normalMatrix, p_uniforms );
 		currentUniforms.updateIfNeeded( 'modelMatrix', object.matrixWorld, p_uniforms );
+		if (object.modelViewProjMatrix) {
+			currentUniforms.updateIfNeeded( 'modelViewProjMatrix', object.modelViewProjMatrix, p_uniforms );
+		}
 
 		return program;
 
@@ -2023,6 +2026,7 @@ function WebGLRenderer( parameters ) {
 		modelViewMatrix: { value: new Matrix4(), needsUpdate: true },
 		normalMatrix: { value: new Matrix3(), needsUpdate: true },
 		modelMatrix: { value: new Matrix4(), needsUpdate: true },
+		modelViewProjMatrix: { value: new Matrix4(), needsUpdate: true },
 
 		updateIfNeeded: function ( name, value, p_uniforms ) {
 
@@ -2042,6 +2046,7 @@ function WebGLRenderer( parameters ) {
 			this.modelViewMatrix.needsUpdate = true;
 			this.normalMatrix.needsUpdate = true;
 			this.modelMatrix.needsUpdate = true;
+			this.modelViewProjMatrix.needsUpdate = true;
 
 		}
 	};
