@@ -689,11 +689,11 @@ function WebGLRenderer( parameters ) {
 		var updateBuffers = false;
 
 		if ( _currentGeometryProgram.geometry !== geometry.id ||
-			_currentGeometryProgram.program !== program.id ||
+			_currentGeometryProgram.program !== program ||
 			_currentGeometryProgram.wireframe !== ( material.wireframe === true ) ) {
 
 			_currentGeometryProgram.geometry = geometry.id;
-			_currentGeometryProgram.program = program.id;
+			_currentGeometryProgram.program = program;
 			_currentGeometryProgram.wireframe = material.wireframe === true;
 			updateBuffers = true;
 
