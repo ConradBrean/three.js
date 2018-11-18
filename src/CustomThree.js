@@ -11,6 +11,7 @@ export { CompressedTexture } from './textures/CompressedTexture.js';
 export { CubeTexture } from './textures/CubeTexture.js';
 export { DepthTexture } from './textures/DepthTexture.js';
 export { Texture } from './textures/Texture.js';
+export { DataTexture } from './textures/DataTexture';
 
 export { PlaneBufferGeometry } from './geometries/PlaneGeometry.js';
 export { BoxBufferGeometry } from './geometries/BoxGeometry.js';
