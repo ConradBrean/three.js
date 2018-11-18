@@ -1260,6 +1260,13 @@ function WebGLRenderer( parameters ) {
 
 	};
 
+
+	this.getWebglUtils = function () {
+
+		return utils;
+
+	};
+
 	/*
 	// TODO Duplicated code (Frustum)
 
