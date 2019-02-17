@@ -815,7 +815,7 @@ function WebGLUniforms( gl, program, renderer ) {
 
 	var n = gl.getProgramParameter( program, gl.ACTIVE_UNIFORMS );
 
-	for ( var i = 0; i < n; ++ i ) {
+	for ( var i = 0; i < n; ++i ) {
 
 		var info = gl.getActiveUniform( program, i ),
 			addr = gl.getUniformLocation( program, info.name );
@@ -867,7 +867,7 @@ WebGLUniforms.seqWithValue = function ( seq, values ) {
 
 	var r = [];
 
-	for ( var i = 0, n = seq.length; i !== n; ++ i ) {
+	for ( var i = 0, n = seq.length; i < n; ++i ) {
 
 		var u = seq[ i ];
 		if ( u.id in values ) r.push( u );

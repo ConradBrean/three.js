@@ -893,6 +893,10 @@ function WebGLRenderer( parameters ) {
 				var geometryAttribute = geometryAttributes[ name ];
 
 				if ( geometryAttribute !== undefined ) {
+					
+					if (geometryAttribute.isInstancedBufferAttribute) {
+						attributes.update(geometryAttribute, _gl.ARRAY_BUFFER);
+					}
 
 					var normalized = geometryAttribute.normalized;
 					var size = geometryAttribute.itemSize;
