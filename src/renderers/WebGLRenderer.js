@@ -668,7 +668,7 @@ function WebGLRenderer( parameters ) {
 	this.renderBufferDirect = function ( camera, fog, geometry, material, object, group ) {
 
 		var program = _currentGeometryProgram.program;
-		let forceDynamicsUpdate = false;
+		let forceMatrixUpdateUpdate = false;
 
 		if ( ! ( _currentMaterialId === material.id) ) {
 
@@ -680,24 +680,29 @@ function WebGLRenderer( parameters ) {
 
 			state.setMaterial( material, frontFaceCW );
 
+			//_currentMaterialId is set inside setProgram
 			const programSet = setProgram(camera, fog, material, object);
 			if (programSet !== program) {
-				forceDynamicsUpdate = true;
+				forceMatrixUpdateUpdate = true;
 				program = programSet;
 			}
-
-			//_currentMaterialId is set inside setProgram
-			_currentMatrixWorld.copy( object.matrixWorld );
-
 		}
 
-		if (forceDynamicsUpdate || _currentMatrixWorld.equals(object.matrixWorld)) {
+		if (forceMatrixUpdateUpdate || !_currentMatrixWorld.equals(object.matrixWorld)) {
+			_currentMatrixWorld.copy( object.matrixWorld );
 			const p_uniforms = program.getUniforms();
-			currentUniforms.updateIfNeeded( 'modelViewMatrix', object.modelViewMatrix, p_uniforms );
-			currentUniforms.updateIfNeeded( 'normalMatrix', object.normalMatrix, p_uniforms );
-			currentUniforms.updateIfNeeded( 'modelMatrix', object.matrixWorld, p_uniforms );
+			cachedUniforms.updateIfNeeded( 'modelViewMatrix', object.modelViewMatrix, p_uniforms );
+			cachedUniforms.updateIfNeeded( 'normalMatrix', object.normalMatrix, p_uniforms );
+			cachedUniforms.updateIfNeeded( 'modelMatrix', object.matrixWorld, p_uniforms );
 			if (object.modelViewProjMatrix) {
-				currentUniforms.updateIfNeeded( 'modelViewProjMatrix', object.modelViewProjMatrix, p_uniforms );
+				cachedUniforms.updateIfNeeded( 'modelViewProjMatrix', object.modelViewProjMatrix, p_uniforms );
+			}
+		}
+
+		if (object.dynamicUniforms && object.dynamicUniforms.size) {
+			const p_uniforms = program.getUniforms();
+			for (const [key, value] of object.dynamicUniforms) {
+				cachedUniforms.updateIfNeeded( key, value, p_uniforms );
 			}
 		}
 
@@ -1887,7 +1892,7 @@ function WebGLRenderer( parameters ) {
 
 			}
 
-			currentUniforms.markDirty();
+			cachedUniforms.clear();
 
 		}
 
@@ -2097,32 +2102,22 @@ function WebGLRenderer( parameters ) {
 
 	}
 
-	var currentUniforms = {
-		modelViewMatrix: { value: new Matrix4(), needsUpdate: true },
-		normalMatrix: { value: new Matrix3(), needsUpdate: true },
-		modelMatrix: { value: new Matrix4(), needsUpdate: true },
-		modelViewProjMatrix: { value: new Matrix4(), needsUpdate: true },
+	var cachedUniforms = {
 
-		updateIfNeeded: function ( name, value, p_uniforms ) {
+		cache: new Map(),
 
-			const uniform = this[ name ];
-			if ( uniform.needsUpdate || ! uniform.value.equals( value ) ) {
+		updateIfNeeded: function (name, value, p_uniforms) {
 
+			const cached = this.cache.get(name);
+			if (!cached || !cached.equals(value)) {
 				p_uniforms.setValue( _gl, name, value );
-				uniform.value.copy( value );
-				uniform.needsUpdate = false;
-
+				this.cache.set(name, value);
 			}
 
 		},
 
-		markDirty: function () {
-
-			this.modelViewMatrix.needsUpdate = true;
-			this.normalMatrix.needsUpdate = true;
-			this.modelMatrix.needsUpdate = true;
-			this.modelViewProjMatrix.needsUpdate = true;
-
+		clear: function () {
+			this.cache.clear();
 		}
 	};
 
