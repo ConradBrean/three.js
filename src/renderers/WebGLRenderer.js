@@ -668,8 +668,9 @@ function WebGLRenderer( parameters ) {
 	this.renderBufferDirect = function ( camera, fog, geometry, material, object, group ) {
 
 		var program = _currentGeometryProgram.program;
+		let forceDynamicsUpdate = false;
 
-		if ( ! ( _currentMaterialId === material.id && _currentMatrixWorld.equals( object.matrixWorld ) ) ) {
+		if ( ! ( _currentMaterialId === material.id) ) {
 
 			// note: matrix world comparision needed for cases where objects with different transforms share the same material
 			// assumption is that other p_uniforms matrices are gonne be equal if model matrices are equal
@@ -679,11 +680,25 @@ function WebGLRenderer( parameters ) {
 
 			state.setMaterial( material, frontFaceCW );
 
-			program = setProgram( camera, fog, material, object );
+			const programSet = setProgram(camera, fog, material, object);
+			if (programSet !== program) {
+				forceDynamicsUpdate = true;
+				program = programSet;
+			}
 
 			//_currentMaterialId is set inside setProgram
 			_currentMatrixWorld.copy( object.matrixWorld );
 
+		}
+
+		if (forceDynamicsUpdate || _currentMatrixWorld.equals(object.matrixWorld)) {
+			const p_uniforms = program.getUniforms();
+			currentUniforms.updateIfNeeded( 'modelViewMatrix', object.modelViewMatrix, p_uniforms );
+			currentUniforms.updateIfNeeded( 'normalMatrix', object.normalMatrix, p_uniforms );
+			currentUniforms.updateIfNeeded( 'modelMatrix', object.matrixWorld, p_uniforms );
+			if (object.modelViewProjMatrix) {
+				currentUniforms.updateIfNeeded( 'modelViewProjMatrix', object.modelViewProjMatrix, p_uniforms );
+			}
 		}
 
 		var updateBuffers = false;
@@ -2078,14 +2093,6 @@ function WebGLRenderer( parameters ) {
 
 		}
 		*/
-		// common matrices
-		currentUniforms.updateIfNeeded( 'modelViewMatrix', object.modelViewMatrix, p_uniforms );
-		currentUniforms.updateIfNeeded( 'normalMatrix', object.normalMatrix, p_uniforms );
-		currentUniforms.updateIfNeeded( 'modelMatrix', object.matrixWorld, p_uniforms );
-		if (object.modelViewProjMatrix) {
-			currentUniforms.updateIfNeeded( 'modelViewProjMatrix', object.modelViewProjMatrix, p_uniforms );
-		}
-
 		return program;
 
 	}
